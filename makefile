@@ -1,6 +1,8 @@
-generate_lex:
+compile:
+	rm -rf build/*
 	mkdir -p build
 	lex  -o build/lex.c src/lex/lex.l 
-	gcc -o build/lex.out build/lex.c -lfl 
+	bison -o build/parse.tab.c -d src/parser/parser.y
+	gcc -o build/app.out build/parse.tab.c build/lex.c -lfl 
 clean:
 	rm -rf build/*
