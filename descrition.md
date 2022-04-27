@@ -26,6 +26,6 @@
    - > repeate { statement } until statement_returns_bool;
 1. for loops:
    - > for index_name = start_value : end_value : step { statement; }
-   - > break/continoue
+   - > break/continue
 1. switch statement:
    - > switch statement_returns_datatype { <br> case datatype {statement} <br> case default { statement }; }

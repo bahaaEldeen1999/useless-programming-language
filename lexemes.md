@@ -1,3 +1,50 @@
 # list of lexemes
 
--
+- Numbers
+  - integers
+  - floats
+- strings
+  - " bla... "
+- chars
+  - 'single_char'
+- booleans
+  - true
+  - false
+- brackets
+  - ( anything )
+- curly braces
+  - { anything }
+- ;
+- int
+- float
+- char
+- bool
+- string
+- const
+- =
+- -
+- -
+- \
+- -
+- %
+- !
+- &&
+- ||
+- \>
+- <
+- \>=
+- <=
+- !=
+- ==
+- if
+- else
+- while
+- repeat
+- until
+- for
+- :
+- break
+- continue
+- switch
+- case
+- default
