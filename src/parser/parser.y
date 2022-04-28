@@ -56,13 +56,21 @@
 %token case_
 %token default_
 
+
+
 %left plus_ minus_
 %left multiply_ divide_ modulus_
-%left open_bracket_ close_bracket_
+
+
 
 %left logical_not_ 
 %left logical_and_
 %left logical_or_
+
+%left gt_ gte_ lt_ lte_ equals_ not_equal_
+
+%left open_bracket_ close_bracket_
+
 
 %type <int_> expr_int
 %type <bool_> expr_bool;
@@ -94,8 +102,12 @@ expr_bool : expr_bool gt_ expr_bool {$$ = $1 > $3;printf("ans: %d\n",$$); }|
    expr_bool lte_ expr_bool {$$ = $1 <= $3;printf("ans: %d\n",$$); }|     
     expr_bool equals_ expr_bool {$$ = $1 == $3;printf("ans: %d\n",$$); }|
      expr_bool not_equal_ expr_bool {$$ = $1 != $3;printf("ans: %d\n",$$); }|
+      expr_bool logical_and_ expr_bool {$$ = $1 && $3;printf("ans: %d\n",$$); }|
+    logical_not_ expr_bool {$$ = !$2  ;printf("ans: %d\n",$$); }|
+        expr_bool logical_or_ expr_bool {$$ = $1 || $3;printf("ans or: %d\n",$$); }|
              expr_int  |
              bool_ { $$ = ($1) ;} ;
+
 
 %%
 

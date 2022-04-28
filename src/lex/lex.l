@@ -21,9 +21,9 @@ DIGIT_NO_ZERO   [1-9]
 %%
 "\n"                    rule("new line",new_line_,0,0)
 
-{ZERO}|{DIGIT_NO_ZERO}{DIGIT}*  rule("integer",integer_,1,0)
+-?({ZERO}|{DIGIT_NO_ZERO}{DIGIT}*)  rule("integer",integer_,1,0)
 
-{ZERO}|{DIGIT_NO_ZERO}{DIGIT}*\.{DIGIT}* rule("float",float_,2,0)
+-?({ZERO}|{DIGIT_NO_ZERO}{DIGIT}*\.{DIGIT}*) rule("float",float_,2,0)
 
 \".*\" rule("string",string_,3,0)
 
