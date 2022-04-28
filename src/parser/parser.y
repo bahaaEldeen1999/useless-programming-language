@@ -5,15 +5,18 @@
 %}
 
 %union{
-        char *str;
-        int val;
+        char *string_;
+        int int_;
+        float float_;
+        int bool_;
 }
 
-%token <val> integer_
-%token float_
-%token string_
-%token char_
-%token bool_
+%token <int_> integer_
+%token <float_> float_
+%token <string_> string_
+%token <string_> char_
+%token <bool_> bool_
+%token new_line_
 %token open_bracket_
 %token close_bracket_
 %token open_curly_braces_
@@ -55,24 +58,44 @@
 
 %left plus_ minus_
 %left multiply_ divide_ modulus_
+%left open_bracket_ close_bracket_
+
 %left logical_not_ 
 %left logical_and_
 %left logical_or_
 
-%type <val> expr
+%type <int_> expr_int
+%type <bool_> expr_bool;
 
 %start input
 
 %%
 
 input: /* empty */ 
-        | input line;
+        |  input line  ;
 
-line: expr '\n' {} |
+line: expr_int new_line_  {} |
+     expr_bool new_line_  {} |
         error;
 
-expr: expr plus_ expr {$$ = ($1)+($3);printf("ans: %d\n",$$);}
-        | integer_ { $$ = ($1) ;} ;
+expr_int: expr_int plus_ expr_int {$$ = ($1)+($3);printf("ans: %d\n",$$); }|
+        expr_int minus_ expr_int {$$ = ($1)-($3);printf("ans: %d\n",$$);} |
+        expr_int multiply_ expr_int {$$ = ($1)*($3);printf("ans: %d\n",$$);} |
+        expr_int divide_ expr_int {$$ = ($1)/($3);printf("ans: %d\n",$$);} |
+        expr_int modulus_ expr_int {$$ = ($1)%($3);printf("ans: %d\n",$$);} |
+        open_bracket_ expr_int close_bracket_ {$$ = ($2);printf("ans: %d\n",$$);} |
+             integer_ { $$ = ($1) ;} ;
+
+
+
+expr_bool : expr_bool gt_ expr_bool {$$ = $1 > $3;printf("ans: %d\n",$$); }|
+ expr_bool gte_ expr_bool {$$ = $1 >= $3;printf("ans: %d\n",$$); }|
+  expr_bool lt_ expr_bool {$$ = $1 < $3;printf("ans: %d\n",$$); }|
+   expr_bool lte_ expr_bool {$$ = $1 <= $3;printf("ans: %d\n",$$); }|     
+    expr_bool equals_ expr_bool {$$ = $1 == $3;printf("ans: %d\n",$$); }|
+     expr_bool not_equal_ expr_bool {$$ = $1 != $3;printf("ans: %d\n",$$); }|
+             expr_int  |
+             bool_ { $$ = ($1) ;} ;
 
 %%
 
