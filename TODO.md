@@ -1,0 +1,5 @@
+- fix float
+- fix duplicate declaration
+- fix float expressions
+- figure out how to combine floats/integers
+- fix declare vs assign

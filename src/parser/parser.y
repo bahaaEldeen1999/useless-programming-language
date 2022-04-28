@@ -2,6 +2,38 @@
 #include <string.h>
 #include <stdio.h>
 #include<stdlib.h>
+#define MAX_NAME_LENGTH 20
+#define MAX_VARS 1000
+#define MAX_STRING 1000
+// 1 => int 
+// 2 => float
+// 3 => char/
+// 4 => bool
+// 5 => string
+
+enum datatypes{INT, FLOAT, CHAR,BOOL,STRING};
+
+typedef union {
+        int int_;
+        float float_;
+        char char_;
+        char string_[MAX_STRING];
+        int bool_;
+    } Data;
+
+
+struct node {
+    char name[MAX_NAME_LENGTH];
+    int type;
+    int id;
+    int is_const;
+    Data data;
+    
+};
+
+
+
+static struct node* symbol_table[MAX_VARS];
 %}
 
 %union{
@@ -16,6 +48,7 @@
 %token <string_> string_
 %token <string_> char_
 %token <bool_> bool_
+%token <string_> var_name_
 %token new_line_
 %token open_bracket_
 %token close_bracket_
@@ -72,8 +105,10 @@
 %left open_bracket_ close_bracket_
 
 
-%type <int_> expr_int
+%type <int_> expr_int;
+%type <float_> expr_float;
 %type <bool_> expr_bool;
+%type <int_> assign;
 
 %start input
 
@@ -84,6 +119,7 @@ input: /* empty */
 
 line: expr_int new_line_  {} |
      expr_bool new_line_  {} |
+     assign new_line_ {}|
         error;
 
 expr_int: expr_int plus_ expr_int {$$ = ($1)+($3);printf("ans: %d\n",$$); }|
@@ -109,6 +145,12 @@ expr_bool : expr_bool gt_ expr_bool {$$ = $1 > $3;printf("ans: %d\n",$$); }|
              bool_ { $$ = ($1) ;} ;
 
 
+assign: dt_int_ var_name_ assign_ expr_int {$$ = assign_value($2,INT,$4);printf("assign: %d\n",$$);} 
+| dt_float_ var_name_ assign_ expr_int {$$ = assign_value($2,FLOAT,$4);printf("assign: %d\n",$$);} 
+| dt_bool_ var_name_ assign_ expr_bool {$$ = assign_value($2,BOOL,$4);printf("assign: %d\n",$$);} 
+| dt_char_ var_name_ assign_ char_ {$$ = assign_value($2,CHAR,$4[1]);printf("assign: %d\n",$$);} 
+|  dt_string_ var_name_ assign_ string_ {$$ = assign_value($2,STRING,$4);printf("assign: %d\n",$$);}; 
+
 %%
 
 main(int argc, char **argv)
@@ -119,4 +161,48 @@ main(int argc, char **argv)
 yyerror()
 {
         printf("Error detected in parsing\n");
+}
+
+int assign_value(char* var_name,int datatype,void* data){
+    // check empty position 
+    for(int i=0;i<MAX_VARS;i++){
+        if(!symbol_table[i]){
+            //printf("1\n");
+            symbol_table[i] = malloc(sizeof(*symbol_table[i]));
+            //printf("2\n");
+            strcpy(symbol_table[i]->name , var_name);
+            //printf("3\n");
+            symbol_table[i]->id = i;
+            //printf("4\n");
+            symbol_table[i]->type = datatype;
+            //printf("5\n");
+
+            if(datatype == INT){
+                //printf("6\n");
+               // printf("data %d \n",(int*)data);
+                symbol_table[i]->data.int_ = ((int*)data);
+               // printf("7\n");
+                printf("name %s id %d type %d value %d \n",symbol_table[i]->name,symbol_table[i]->id ,symbol_table[i]->type ,symbol_table[i]->data.int_ );
+            }else if(datatype == FLOAT){
+               // printf("data %f \n",data);
+                symbol_table[i]->data.float_ = *((double*)&data);
+                 printf("name %s id %d type %d value %f \n",symbol_table[i]->name,symbol_table[i]->id ,symbol_table[i]->type ,symbol_table[i]->data.float_ );
+            }else if(datatype == BOOL){
+                symbol_table[i]->data.bool_ = ((int*)data);
+                 printf("name %s id %d type %d value %d \n",symbol_table[i]->name,symbol_table[i]->id ,symbol_table[i]->type ,symbol_table[i]->data.bool_ );
+            }else if(datatype == CHAR){
+                symbol_table[i]->data.char_ = *((char*)&data);
+                 printf("name %s id %d type %d value %c \n",symbol_table[i]->name,symbol_table[i]->id ,symbol_table[i]->type ,symbol_table[i]->data.char_ );
+            }else if(datatype == STRING){
+                //symbol_table[i]->data.string_ = ((char**)data);
+                strcpy(symbol_table[i]->data.string_ ,  ((char*)data));
+                 printf("name %s id %d type %d value %s \n",symbol_table[i]->name,symbol_table[i]->id ,symbol_table[i]->type ,symbol_table[i]->data.string_ );
+            }
+
+           
+            return 0;
+
+        }
+    }
+    return -1;
 }
