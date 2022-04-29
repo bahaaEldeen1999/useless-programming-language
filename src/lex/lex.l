@@ -20,7 +20,7 @@ DIGIT_NO_ZERO   [1-9]
 CHAR    [a-zA-z]
 
 %%
-"\n"                    rule("new line",new_line_,0,0)
+[ \n\t]         ;                   // white space 
 
 
 -?({ZERO}|{DIGIT_NO_ZERO}{DIGIT}*)  rule("integer",integer_,1,1)
