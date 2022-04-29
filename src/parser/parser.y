@@ -126,6 +126,7 @@ line: expr_int semicolumn_  {} |
      expr_bool semicolumn_  {} |
      declare_var semicolumn_ {}|
      assign semicolumn_ {}|
+     if_statement {}|
         error;
 
 expr_int: expr_int plus_ expr_int {$$ = ($1)+($3);printf("ans: %d\n",$$); }|
@@ -180,6 +181,12 @@ assign:   var_name_ assign_ expr_int {$$ = assign_value($1,$3);printf("assign: %
 |  var_name_ assign_ char_ {$$ = assign_value($1,$3[1]);printf("assign: %d\n",$$);} 
 |   var_name_ assign_ string_ {$$ = assign_value($1,$3);printf("assign: %d\n",$$);}; 
 
+
+
+
+if_statement: if_ open_bracket_ expr_bool close_bracket_ open_curly_braces_ input close_curly_braces_ else_ open_curly_braces_ input close_curly_braces_ {}
+
+| if_ open_bracket_ expr_bool close_bracket_ open_curly_braces_ input close_curly_braces_ {if($3){$6;}};
 
 
 %%
