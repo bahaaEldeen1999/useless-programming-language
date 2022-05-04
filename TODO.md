@@ -1,6 +1,8 @@
-- fix float
+- fix float [done]
 - fix duplicate declaration [done]
-- fix float expressions
-- figure out how to combine floats/integers
+- fix float expressions [done]
+- figure out how to combine floats/integers [done]
 - fix declare vs assign [done]
 - fix string double quotes
+- fix negative numbers in expressions
+- FIX EVAL datatypes char/string

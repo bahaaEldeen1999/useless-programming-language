@@ -23,7 +23,7 @@ CHAR    [a-zA-z]
 [ \n\t]         ;                   // white space 
 
 
--?({ZERO}|{DIGIT_NO_ZERO}{DIGIT}*)  rule("integer",integer_,1,1)
+-?({ZERO}|{DIGIT_NO_ZERO}{DIGIT}*)  rule("integer",integer_,1,0)
 
 -?({ZERO}|{DIGIT_NO_ZERO}{DIGIT}*\.{DIGIT}*) rule("float",float_,2,0)
 
@@ -40,14 +40,14 @@ CHAR    [a-zA-z]
 "}" rule("close_curly_braces",close_curly_braces_,0,0)
 ";" rule("semicolumn",semicolumn_,0,0)
 
-"int" rule("dt_int",dt_int_,0,1)
+"int" rule("dt_int",dt_int_,0,0)
 "float" rule("dt_float",dt_float_,0,0)
 "char" rule("dt_char",dt_char_,0,0)
 "bool" rule("dt_bool",dt_bool_,0,0)
 "string" rule("_dt_string",dt_string_,0,0)
 
 "const" rule("const",const_,0,0)
-"=" rule("equals",assign_,0,1)
+"=" rule("equals",assign_,0,0)
 
 "-" rule("minsu",minus_,0,0)
 "+" rule("plus",plus_,0,0)
@@ -79,5 +79,5 @@ CHAR    [a-zA-z]
 "case" rule("case",case_,0,0)
 "default" rule("default",default_,0,0)
 
-{CHAR}({DIGIT}|{CHAR})* rule("var name",var_name_,3,1)
+{CHAR}({DIGIT}|{CHAR})* rule("var name",var_name_,3,0)
 %%
