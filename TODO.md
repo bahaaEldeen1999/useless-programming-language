@@ -5,4 +5,7 @@
 - fix declare vs assign [done]
 - fix string double quotes
 - fix negative numbers in expressions
-- FIX EVAL datatypes char/string
+- FIX EVAL datatypes char [done]
+- FIX EVAL datatypes string
+- FIX add break/continue [done]
+- FIX break and cont cascading/nesting

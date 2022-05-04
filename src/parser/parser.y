@@ -79,8 +79,8 @@
 
 %type <ast> expr multiline;
 %type <ast> assign;
-%type <ast> declare_var;
-%type <ast> if_statement;
+%type <ast> declare_var declare_var_with_assign; 
+%type <ast> if_statement while_loop repeat_until for_loop control_flow;
 %type <ast> line ;
 
 %start input
@@ -129,9 +129,14 @@ line: expr   {$$ =  newASTNode(LIST,$1,NULL);} |
     declare_var  {$$ =  newASTNode(LIST,$1,NULL);}| 
     assign  {$$ =  newASTNode(LIST,$1,NULL);}| 
     if_statement  {$$ =  newASTNode(LIST,$1,NULL);} | 
+    while_loop  {$$ =  newASTNode(LIST,$1,NULL);} | 
+    repeat_until  {$$ =  newASTNode(LIST,$1,NULL);} | 
+    for_loop  {$$ =  newASTNode(LIST,$1,NULL);} | 
+    control_flow  {$$ =  newASTNode(LIST,$1,NULL);} | 
     error;
 
-
+control_flow: break_ {$$ =  newASTNode(BREAK,NULL,NULL);} |
+                continue_ {$$ =  newASTNode(CONT,NULL,NULL);};
 
 expr: expr plus_ expr {$$ =  newASTNode(PLUS,$1,$3);}|
         expr minus_ expr {$$ =  newASTNode(MINUS,$1,$3);} |
@@ -158,13 +163,13 @@ expr: expr plus_ expr {$$ =  newASTNode(PLUS,$1,$3);}|
         
 
 
-declare_var: dt_int_ var_name_ assign_ expr {$$ = newVariableDataNode(DECLARE, $2,INT,0,1,$4);} 
+declare_var_with_assign: dt_int_ var_name_ assign_ expr {$$ = newVariableDataNode(DECLARE, $2,INT,0,1,$4);} 
 | dt_float_ var_name_ assign_ expr {$$ = newVariableDataNode(DECLARE, $2,FLOAT,0,1,$4);} 
 | dt_bool_ var_name_ assign_ expr {$$ = newVariableDataNode(DECLARE, $2,BOOL,0,1,$4);} 
 | dt_char_ var_name_ assign_ expr {$$ = newVariableDataNode(DECLARE, $2,CHAR,0,1,$4);} 
 |  dt_string_ var_name_ assign_ string_ {$$ = newVariableDataNode(DECLARE, $2,STRING,0,1,$4);}; 
 
-
+declare_var: declare_var_with_assign 
 | const_ dt_int_ var_name_ assign_ expr {$$ = newVariableDataNode(DECLARE, $3,INT,1,1,$5);} 
 |const_ dt_float_ var_name_ assign_ expr {$$ = newVariableDataNode(DECLARE, $3,FLOAT,1,1,$5);} 
 |const_ dt_bool_ var_name_ assign_ expr {$$ = newVariableDataNode(DECLARE, $3,BOOL,1,1,$5);} 
@@ -185,9 +190,17 @@ assign:   var_name_ assign_ expr {$$ = newVariableDataNode(ASSIGN, $1,0,0,1,$3);
 
 
 if_statement: if_ open_bracket_ expr close_bracket_ open_curly_braces_ multiline close_curly_braces_ else_ open_curly_braces_ multiline close_curly_braces_ {
-    $$ = newFlowControlNode(IF,$3,$6,$10);}
-| if_ open_bracket_ expr close_bracket_ open_curly_braces_ multiline close_curly_braces_ { $$ = newFlowControlNode(IF,$3,$6,NULL);  };
+    $$ = newFlowControlNode(IF,$3,$6,$10,NULL,NULL,NULL);}
+| if_ open_bracket_ expr close_bracket_ open_curly_braces_ multiline close_curly_braces_ { $$ = newFlowControlNode(IF,$3,$6,NULL,NULL,NULL,NULL);  };
 
+while_loop: while_ open_bracket_ expr close_bracket_ open_curly_braces_ multiline close_curly_braces_ { $$ = newFlowControlNode(WHILE,$3,$6,NULL,NULL,NULL,NULL); }
+
+
+repeat_until: repeat_ open_curly_braces_ multiline close_curly_braces_ until_ open_bracket_ expr close_bracket_ { $$ = newFlowControlNode(REPEAT,$7,$3,NULL,NULL,NULL,NULL); }
+
+for_loop: for_ open_bracket_ declare_var_with_assign column_ expr column_ expr close_bracket_ open_curly_braces_ multiline close_curly_braces_ {
+    $$ = newFlowControlNode(FOR,NULL,$10,NULL,$3,$5,$7);
+} 
 
 %%
 

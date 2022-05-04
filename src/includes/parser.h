@@ -149,7 +149,9 @@ int declare_variable(char *var_name, int datatype, int is_const, int is_assign, 
     if (get_symbol(var_name))
     {
         // error declared beofer
-        return -1;
+        printf("declared before\n");
+        id = get_symbol(var_name)->id;
+        // return -1;
     }
 
     symbol_table[id] = malloc(sizeof(*symbol_table[id]));
@@ -204,6 +206,12 @@ enum NodeTypes
     LIST,
     DECLARE,
     IF,
+    WHILE,
+    FOR,
+    REPEAT,
+    SWITCH,
+    BREAK,
+    CONT
 };
 
 struct ASTNode
@@ -236,6 +244,9 @@ struct flowControlNode
     struct ASTNode *exprBool;
     struct ASTNode *thenStmt;
     struct ASTNode *elseStmt;
+    struct ASTNode *start;
+    struct ASTNode *end;
+    struct ASTNode *step;
 };
 
 struct ASTNode *newASTNode(int nodetype, struct ASTNode *l, struct ASTNode *r)
@@ -276,7 +287,7 @@ struct ASTNode *newVariableDataNode(int nodeType, char *var_name_, int datatype,
     return (struct ASTNode *)a;
 }
 
-struct ASTNode *newFlowControlNode(int nodetype, struct ASTNode *exprBool, struct ASTNode *thenStmt, struct ASTNode *elseStmt)
+struct ASTNode *newFlowControlNode(int nodetype, struct ASTNode *exprBool, struct ASTNode *thenStmt, struct ASTNode *elseStmt, struct ASTNode *start, struct ASTNode *end, struct ASTNode *step)
 {
     struct flowControlNode *a = malloc(sizeof(struct flowControlNode));
 
@@ -289,6 +300,9 @@ struct ASTNode *newFlowControlNode(int nodetype, struct ASTNode *exprBool, struc
     a->exprBool = exprBool;
     a->thenStmt = thenStmt;
     a->elseStmt = elseStmt;
+    a->start = start;
+    a->end = end;
+    a->step = step;
     return (struct ASTNode *)a;
 }
 
@@ -352,11 +366,29 @@ int eval_math_ops(int op, Data *v, float num1, float num2)
         break;
     }
 }
+
+// global break and continue
+int is_break = 0;
+int is_cont = 0;
 Data eval(struct ASTNode *a, int *datatype)
 {
     Data v;
+    if (is_break || is_cont)
+    {
+        return v;
+    }
     switch (a->nodetype)
     {
+    case BREAK:
+    {
+        is_break = 1;
+        break;
+    }
+    case CONT:
+    {
+        is_cont = 1;
+        break;
+    }
     case LIST:
     {
         v = eval(a->l, datatype);
@@ -460,6 +492,8 @@ Data eval(struct ASTNode *a, int *datatype)
         if (t->is_assign || t->is_const)
         {
             v = eval(t->expr, datatype);
+            // printf("data int %d\n", v.int_);
+            // printf("data float %f\n", v.float_);
         }
         else
         {
@@ -491,6 +525,7 @@ Data eval(struct ASTNode *a, int *datatype)
         // printf("datatype %d\n", *datatype);
 
         // declare_variable(t->var_name_, t->datatype, t->is_const, t->is_assign, v.int_, v.float_, v.char_, NULL);
+        // strcpy(curr_var_name, t->var_name_);
         break;
     }
     case ASSIGN:
@@ -544,6 +579,74 @@ Data eval(struct ASTNode *a, int *datatype)
             }
             v.int_ = 0;
         }
+        break;
+    }
+    case WHILE:
+    {
+        struct flowControlNode *t = (struct flowControlNode *)a;
+        printf("in while\n");
+        v = eval(t->exprBool, datatype);
+        while (get_math_value(v, *datatype))
+        {
+            // printf("math value %f \n", get_math_value(v, *datatype));
+            printf("in while loop \n");
+            eval(t->thenStmt, datatype);
+            if (is_break)
+                break;
+            v = eval(t->exprBool, datatype);
+            is_cont = 0;
+        }
+        is_break = 0;
+        break;
+    }
+    case REPEAT:
+    {
+        struct flowControlNode *t = (struct flowControlNode *)a;
+        printf("in repeat\n");
+        v = eval(t->exprBool, datatype);
+        int flag = 1;
+        while (!get_math_value(v, *datatype) || flag)
+        {
+            // printf("math value %f \n", get_math_value(v, *datatype));
+            printf("in repat loop \n");
+            eval(t->thenStmt, datatype);
+            if (is_break)
+                break;
+            is_cont = 0;
+            v = eval(t->exprBool, datatype);
+            flag = 0;
+        }
+        is_break = 0;
+        break;
+    }
+    case FOR:
+    {
+        struct flowControlNode *t = (struct flowControlNode *)a;
+        printf("in FOR\n");
+        Data startData = eval(t->start, datatype);
+        float start = get_math_value(startData, *datatype);
+        Data endData = eval(t->end, datatype);
+        float end = get_math_value(endData, *datatype);
+        Data stepData = eval(t->step, datatype);
+        float step = get_math_value(stepData, *datatype);
+        char curr_var_name[MAX_NAME_LENGTH];
+        strcpy(curr_var_name, ((struct VariableDataNode *)t->start)->var_name_);
+        printf("start %f end %f step %f loop %s\n", start, end, step, curr_var_name);
+        for (start; start < end; start = start + step)
+        {
+            printf("in for loop %f start %s\n", start, curr_var_name);
+            v = eval(t->thenStmt, datatype);
+            if (is_break)
+                break;
+            endData = eval(t->end, datatype);
+            end = get_math_value(endData, *datatype);
+            stepData = eval(t->step, datatype);
+            step = get_math_value(stepData, *datatype);
+            assign_value(curr_var_name, start + step, start + step, start + step, NULL);
+            is_cont = 0;
+        }
+        is_break = 0;
+        break;
     }
     default:
         break;
