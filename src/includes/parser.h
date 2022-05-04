@@ -39,6 +39,87 @@ struct node
 
 static struct node *symbol_table[MAX_VARS];
 
+int set_data_value(Data *data, int datatype, int datai, float dataf, char datac, char *datas)
+{
+    if (datatype == INT)
+    {
+
+        data->int_ = datai;
+        return INT;
+    }
+    else if (datatype == FLOAT)
+    {
+        data->float_ = dataf;
+        return FLOAT;
+    }
+    else if (datatype == BOOL)
+    {
+        data->bool_ = datai;
+        return BOOL;
+    }
+    else if (datatype == CHAR)
+    {
+        data->char_ = datac;
+        return CHAR;
+    }
+    else if (datatype == STRING)
+    {
+
+        strcpy(data->string_, datas);
+        return STRING;
+    }
+    return -1;
+}
+
+int set_data_value_from_other(Data *data, int datatype, Data data2)
+{
+    if (datatype == INT)
+    {
+
+        data->int_ = data2.int_;
+    }
+    else if (datatype == FLOAT)
+    {
+        data->float_ = data2.float_;
+    }
+    else if (datatype == BOOL)
+    {
+        data->bool_ = data2.bool_;
+    }
+    else if (datatype == CHAR)
+    {
+        data->char_ = data2.char_;
+    }
+    else if (datatype == STRING)
+    {
+
+        strcpy(data->string_, data2.string_);
+    }
+    return 0;
+}
+
+float get_math_value(Data data, int datatype)
+{
+    if (datatype == INT)
+    {
+
+        return (float)data.int_;
+    }
+    else if (datatype == FLOAT)
+    {
+        return (float)data.float_;
+    }
+    else if (datatype == BOOL)
+    {
+        return (float)data.bool_;
+    }
+    else if (datatype == CHAR)
+    {
+        return (float)data.char_;
+    }
+    // error
+}
+
 struct node *get_symbol(char *var_name)
 {
     for (int i = 0; i < MAX_VARS; i++)
@@ -81,28 +162,7 @@ int declare_variable(char *var_name, int datatype, int is_const, int is_assign, 
     //  if not const then assign is optional
     if (is_const || is_assign)
     {
-        if (datatype == INT)
-        {
-
-            symbol_table[id]->data.int_ = datai;
-        }
-        else if (datatype == FLOAT)
-        {
-            symbol_table[id]->data.float_ = dataf;
-        }
-        else if (datatype == BOOL)
-        {
-            symbol_table[id]->data.bool_ = datai;
-        }
-        else if (datatype == CHAR)
-        {
-            symbol_table[id]->data.char_ = datac;
-        }
-        else if (datatype == STRING)
-        {
-
-            strcpy(symbol_table[id]->data.string_, datas);
-        }
+        set_data_value(&symbol_table[id]->data, datatype, datai, dataf, datac, datas);
     }
 
     return 0;
@@ -118,28 +178,7 @@ int assign_value(char *var_name, int datai, float dataf, char datac, char *datas
         return -1;
     }
     int datatype = symbol->type;
-    if (datatype == INT)
-    {
-
-        symbol->data.int_ = datai;
-    }
-    else if (datatype == FLOAT)
-    {
-        symbol->data.float_ = dataf;
-    }
-    else if (datatype == BOOL)
-    {
-        symbol->data.bool_ = datai;
-    }
-    else if (datatype == CHAR)
-    {
-        symbol->data.char_ = datac;
-    }
-    else if (datatype == STRING)
-    {
-
-        strcpy(symbol->data.string_, datas);
-    }
+    set_data_value(&symbol->data, datatype, datai, dataf, datac, datas);
     return 0;
 }
 
@@ -221,26 +260,7 @@ struct ASTNode *newDataNode(int nodeType, int datatype, int datai, float dataf, 
     struct DataNode *a = malloc(sizeof(struct DataNode));
     a->nodetype = nodeType;
     a->datatype = datatype;
-    if (datatype == INT)
-    {
-        a->data.int_ = datai;
-    }
-    else if (datatype == FLOAT)
-    {
-        a->data.float_ = dataf;
-    }
-    else if (datatype == BOOL)
-    {
-        a->data.bool_ = datai;
-    }
-    else if (datatype == CHAR)
-    {
-        a->data.char_ = datac;
-    }
-    else if (datatype == STRING)
-    {
-        strcpy(a->data.string_, datas);
-    }
+    set_data_value(&a->data, datatype, datai, dataf, datac, datas);
     return (struct ASTNode *)a;
 }
 
@@ -272,37 +292,83 @@ struct ASTNode *newFlowControlNode(int nodetype, struct ASTNode *exprBool, struc
     return (struct ASTNode *)a;
 }
 
-double eval(struct ASTNode *a)
+int compatible_types(int datatype1, int datatype2, int is_mod)
 {
-    double v;
+    if (is_mod && (datatype1 != INT || datatype2 != INT))
+        return 0;
+    if ((datatype1 == STRING || datatype2 == STRING))
+        return 0;
+    return 1;
+}
+
+int eval_math_ops(int op, Data *v, float num1, float num2)
+{
+    switch (op)
+    {
+    case PLUS:
+        return set_data_value(v, FLOAT, 0, num1 + num2, 0, NULL);
+        break;
+    case MINUS:
+        return set_data_value(v, FLOAT, 0, num1 - num2, 0, NULL);
+        break;
+    case MUL:
+        return set_data_value(v, FLOAT, 0, num1 * num2, 0, NULL);
+        break;
+    case DIV:
+        return set_data_value(v, FLOAT, 0, num1 / num2, 0, NULL);
+        break;
+    case MOD:
+        return set_data_value(v, INT, (int)num1 % (int)num2, 0, 0, NULL);
+        break;
+    case GT:
+        return set_data_value(v, INT, num1 > num2, 0, 0, NULL);
+        break;
+    case GTE:
+        return set_data_value(v, INT, num1 >= num2, 0, 0, NULL);
+        break;
+    case LT:
+        return set_data_value(v, INT, num1 < num2, 0, 0, NULL);
+        break;
+    case LTE:
+        return set_data_value(v, INT, num1 <= num2, 0, 0, NULL);
+        break;
+    case NOTEQ:
+        return set_data_value(v, INT, num1 != num2, 0, 0, NULL);
+        break;
+    case EQ:
+        return set_data_value(v, INT, num1 == num2, 0, 0, NULL);
+        break;
+    case NOT:
+        return set_data_value(v, INT, !num1, 0, 0, NULL);
+        break;
+    case AND:
+        return set_data_value(v, INT, num1 && num2, 0, 0, NULL);
+        break;
+    case OR:
+        return set_data_value(v, INT, num1 || num2, 0, 0, NULL);
+        break;
+
+    default:
+        break;
+    }
+}
+Data eval(struct ASTNode *a, int *datatype)
+{
+    Data v;
     switch (a->nodetype)
     {
     case LIST:
     {
-        v = eval(a->l);
+        v = eval(a->l, datatype);
         if (a->r)
-            v = eval(a->r);
+            v = eval(a->r, datatype);
         break;
     }
     case CONSTANT:
     {
         struct DataNode *t = (struct DataNode *)a;
-        switch (t->datatype)
-        {
-        case INT:
-            v = t->data.int_;
-            break;
-        case FLOAT:
-            v = t->data.float_;
-            break;
-        case BOOL:
-            v = t->data.bool_;
-            break;
-
-        default:
-            break;
-        }
-
+        set_data_value_from_other(&v, t->datatype, t->data);
+        *datatype = t->datatype;
         break;
     }
     case VARIABLE:
@@ -312,18 +378,142 @@ double eval(struct ASTNode *a)
         if (!symbol)
         {
             // error;
+            printf("no symbol \n");
+            *datatype = -1;
+            return v;
         }
-        // printf("t datatype %d\n", symbol->type);
-        switch (symbol->type)
+        set_data_value_from_other(&v, symbol->type, symbol->data);
+        *datatype = symbol->type;
+        break;
+    }
+    case PLUS:
+    case MINUS:
+    case MUL:
+    case DIV:
+    case GT:
+    case GTE:
+    case LT:
+    case LTE:
+    case EQ:
+    case NOTEQ:
+    case AND:
+    case OR:
+    {
+        int datatype1 = -1;
+        int datatype2 = -1;
+        Data v1 = eval(a->l, &datatype1);
+        Data v2 = eval(a->r, &datatype2);
+        if (compatible_types(datatype1, datatype2, 0))
+        {
+            float num1 = get_math_value(v1, datatype1);
+            float num2 = get_math_value(v2, datatype2);
+            *datatype = eval_math_ops(a->nodetype, &v, num1, num2);
+        }
+        else
+        {
+            // error
+            v.int_ = 0;
+            *datatype = -1;
+        }
+        break;
+    }
+    case MOD:
+    {
+        int datatype1 = -1;
+        int datatype2 = -1;
+        Data v1 = eval(a->l, &datatype1);
+        Data v2 = eval(a->r, &datatype2);
+        if (compatible_types(datatype1, datatype2, 1))
+        {
+            int num1 = (int)get_math_value(v1, datatype1);
+            int num2 = (int)get_math_value(v2, datatype2);
+            *datatype = eval_math_ops(a->nodetype, &v, num1, num2);
+        }
+        else
+        {
+            // error
+            v.int_ = 0;
+            *datatype = -1;
+        }
+        break;
+    }
+    case NOT:
+    {
+        int datatype1 = -1;
+        Data v1 = eval(a->l, &datatype1);
+        if (compatible_types(datatype1, FLOAT, 0))
+        {
+            int num1 = (int)get_math_value(v1, datatype1);
+            *datatype = eval_math_ops(a->nodetype, &v, num1, 0);
+        }
+        else
+        {
+            // error
+            v.int_ = 0;
+            *datatype = -1;
+        }
+        break;
+    }
+    case DECLARE:
+    {
+        struct VariableDataNode *t = (struct VariableDataNode *)a;
+        if (t->is_assign || t->is_const)
+        {
+            v = eval(t->expr, datatype);
+        }
+        else
+        {
+            v.int_ = 0;
+            *datatype = t->datatype;
+        }
+        switch (*datatype)
         {
         case INT:
-            v = symbol->data.int_;
+            declare_variable(t->var_name_, t->datatype, t->is_const, t->is_assign, v.int_, v.int_, v.int_, NULL);
             break;
         case FLOAT:
-            v = symbol->data.float_;
+            declare_variable(t->var_name_, t->datatype, t->is_const, t->is_assign, v.float_, v.float_, v.float_, NULL);
             break;
         case BOOL:
-            v = symbol->data.bool_;
+            declare_variable(t->var_name_, t->datatype, t->is_const, t->is_assign, v.bool_, v.bool_, v.bool_, NULL);
+            break;
+        case CHAR:
+            declare_variable(t->var_name_, t->datatype, t->is_const, t->is_assign, v.char_, v.char_, v.char_, NULL);
+            break;
+        case STRING:
+            declare_variable(t->var_name_, t->datatype, t->is_const, t->is_assign, 0, 0, 0, v.string_);
+            break;
+
+        default:
+            break;
+        }
+        //*datatype = t->datatype;
+        // printf("datatype %d\n", *datatype);
+
+        // declare_variable(t->var_name_, t->datatype, t->is_const, t->is_assign, v.int_, v.float_, v.char_, NULL);
+        break;
+    }
+    case ASSIGN:
+    {
+        struct VariableDataNode *t = (struct VariableDataNode *)a;
+
+        v = eval(t->expr, datatype);
+        switch (*datatype)
+        {
+        case INT:
+            assign_value(t->var_name_, v.int_, v.int_, v.int_, NULL);
+            break;
+        case FLOAT:
+            assign_value(t->var_name_, v.float_, v.float_, v.float_, NULL);
+            break;
+        case BOOL:
+            assign_value(t->var_name_, v.bool_, v.bool_, v.bool_, NULL);
+            break;
+        case CHAR:
+            assign_value(t->var_name_, v.char_, v.char_, v.char_, NULL);
+            break;
+        case STRING:
+            assign_value(t->var_name_, 0, 0, 0, v.string_);
             break;
 
         default:
@@ -332,109 +522,17 @@ double eval(struct ASTNode *a)
 
         break;
     }
-    case PLUS:
-    {
-        v = eval(a->l) + eval(a->r);
-        break;
-    }
-    case MINUS:
-    {
-        v = eval(a->l) - eval(a->r);
-        break;
-    }
-    case MUL:
-    {
-        v = eval(a->l) * eval(a->r);
-        break;
-    }
-    case DIV:
-    {
-        v = eval(a->l) / eval(a->r);
-        break;
-    }
-    case MOD:
-    {
-        v = (int)eval(a->l) % (int)eval(a->r);
-        break;
-    }
-    case GT:
-    {
-        v = (int)(eval(a->l) > eval(a->r));
-        break;
-    }
-    case GTE:
-    {
-        v = (int)(eval(a->l) >= eval(a->r));
-        break;
-    }
-    case LT:
-    {
-        v = (int)(eval(a->l) < eval(a->r));
-        break;
-    }
-    case LTE:
-    {
-        v = (int)(eval(a->l) <= eval(a->r));
-        break;
-    }
-    case NOTEQ:
-    {
-        v = (int)(eval(a->l) != eval(a->r));
-        break;
-    }
-    case EQ:
-    {
-        v = (int)(eval(a->l) == eval(a->r));
-        break;
-    }
-    case AND:
-    {
-        v = (int)(eval(a->l) && eval(a->r));
-        break;
-    }
-    case NOT:
-    {
-        v = (int)(!eval(a->l));
-        break;
-    }
-    case OR:
-    {
-        v = (int)(eval(a->l) || eval(a->r));
-        break;
-    }
-    case DECLARE:
-    {
-        struct VariableDataNode *t = (struct VariableDataNode *)a;
-        if (t->is_assign || t->is_const)
-        {
-            v = eval(t->expr);
-        }
-        else
-        {
-            v = 0;
-        }
-        declare_variable(t->var_name_, t->datatype, t->is_const, t->is_assign, v, v, 0, NULL);
-        break;
-    }
-    case ASSIGN:
-    {
-        struct VariableDataNode *t = (struct VariableDataNode *)a;
-
-        v = eval(t->expr);
-        assign_value(t->var_name_, (int)v, (float)v, 0, NULL);
-        break;
-    }
     case IF:
     {
         struct flowControlNode *t = (struct flowControlNode *)a;
         printf("in if\n");
-        v = eval(t->exprBool);
-        if (v)
+        v = eval(t->exprBool, datatype);
+        if (get_math_value(v, *datatype))
         {
             printf("in then \n");
             if (t->thenStmt)
-                eval(t->thenStmt);
-            v = 1;
+                eval(t->thenStmt, datatype);
+            v.int_ = 1;
         }
         else
         {
@@ -442,9 +540,9 @@ double eval(struct ASTNode *a)
             if (t->elseStmt)
             {
                 printf("in else\n");
-                eval(t->elseStmt);
+                eval(t->elseStmt, datatype);
             }
-            v = 0;
+            v.int_ = 0;
         }
     }
     default:

@@ -89,7 +89,33 @@
 
 input: /* empty */ 
         |  input line semicolumn_ {
-           printf("eval %f\n",eval($2));
+            int datatype=-1;
+            Data v = eval($2,&datatype);
+            switch( datatype){
+                case INT:
+                case BOOL:
+                {
+                    printf("int %d \n",v.int_);
+                    break;
+                }
+                case CHAR:
+                {
+                    printf("char %c \n",v.char_);
+                    break;
+                }
+                case FLOAT:
+                {
+                    printf("float %f \n",v.float_);
+                    break;
+                }
+                case STRING:
+                {
+                    printf("string %s \n",v.string_);
+                    break;
+                }
+
+            }
+    
         };
 
 multiline: /* empty */ {$$ = NULL;} |
@@ -127,13 +153,15 @@ expr: expr plus_ expr {$$ =  newASTNode(PLUS,$1,$3);}|
         var_name_ {$$ = newVariableDataNode(VARIABLE,$1,0,0,0,NULL);} |
         integer_ { $$ = newDataNode(CONSTANT,INT,$1,0.0f,NULL,NULL) ;} |
         float_ { $$ = newDataNode(CONSTANT,FLOAT,NULL,$1,NULL,NULL) ;} ;|
-        bool_ { $$ =  newDataNode(CONSTANT,BOOL,$1,0.0f,NULL,NULL);} ;
+        bool_ { $$ =  newDataNode(CONSTANT,BOOL,$1,0.0f,NULL,NULL);} |
+        char_ { $$ =  newDataNode(CONSTANT,CHAR,0,0.0f,$1[1],NULL);} ;
+        
 
 
 declare_var: dt_int_ var_name_ assign_ expr {$$ = newVariableDataNode(DECLARE, $2,INT,0,1,$4);} 
 | dt_float_ var_name_ assign_ expr {$$ = newVariableDataNode(DECLARE, $2,FLOAT,0,1,$4);} 
 | dt_bool_ var_name_ assign_ expr {$$ = newVariableDataNode(DECLARE, $2,BOOL,0,1,$4);} 
-| dt_char_ var_name_ assign_ char_ {$$ = newVariableDataNode(DECLARE, $2,CHAR,0,1,$4);} 
+| dt_char_ var_name_ assign_ expr {$$ = newVariableDataNode(DECLARE, $2,CHAR,0,1,$4);} 
 |  dt_string_ var_name_ assign_ string_ {$$ = newVariableDataNode(DECLARE, $2,STRING,0,1,$4);}; 
 
 
