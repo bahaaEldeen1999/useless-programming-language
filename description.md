@@ -28,4 +28,4 @@
    - > for( index_name = start_value : end_value : step) { statement; };
    - > break/continue;
 1. switch statement:
-   - > switch (statement_returns_datatype) { <br> case datatype {statement}; <br> case default { statement }; <br>};
+   - > switch (statement_returns_datatype) { <br> case (expr) {statement}; <br> default { statement }; <br>};
