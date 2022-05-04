@@ -8,4 +8,4 @@
 - FIX EVAL datatypes char [done]
 - FIX EVAL datatypes string
 - FIX add break/continue [done]
-- FIX break and cont cascading/nesting
+- Switch is integer only [done]

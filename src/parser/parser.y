@@ -80,7 +80,7 @@
 %type <ast> expr multiline;
 %type <ast> assign;
 %type <ast> declare_var declare_var_with_assign; 
-%type <ast> if_statement while_loop repeat_until for_loop control_flow;
+%type <ast> if_statement while_loop repeat_until for_loop control_flow case_stmt switch_stmt case_stmts;
 %type <ast> line ;
 
 %start input
@@ -133,6 +133,8 @@ line: expr   {$$ =  newASTNode(LIST,$1,NULL);} |
     repeat_until  {$$ =  newASTNode(LIST,$1,NULL);} | 
     for_loop  {$$ =  newASTNode(LIST,$1,NULL);} | 
     control_flow  {$$ =  newASTNode(LIST,$1,NULL);} | 
+    switch_stmt  {$$ =  newASTNode(LIST,$1,NULL);} | 
+
     error;
 
 control_flow: break_ {$$ =  newASTNode(BREAK,NULL,NULL);} |
@@ -199,8 +201,29 @@ while_loop: while_ open_bracket_ expr close_bracket_ open_curly_braces_ multilin
 repeat_until: repeat_ open_curly_braces_ multiline close_curly_braces_ until_ open_bracket_ expr close_bracket_ { $$ = newFlowControlNode(REPEAT,$7,$3,NULL,NULL,NULL,NULL); }
 
 for_loop: for_ open_bracket_ declare_var_with_assign column_ expr column_ expr close_bracket_ open_curly_braces_ multiline close_curly_braces_ {
-    $$ = newFlowControlNode(FOR,NULL,$10,NULL,$3,$5,$7);
-} 
+    $$ = newFlowControlNode(FOR,NULL,$10,NULL,$3,$5,$7); 
+};
+
+case_stmt: case_ open_bracket_ expr close_bracket_ open_curly_braces_ multiline close_curly_braces_ {
+    $$ = newCaseNode(CASE,NULL,$3,$6,0);
+}
+| default_ open_curly_braces_ multiline close_curly_braces_ {
+    $$ = newCaseNode(CASE,NULL,NULL,$3,1);
+}
+
+case_stmts: /* nothing */ {$$ = NULL;} |
+            case_stmt semicolumn_ case_stmts {
+                if($3 == NULL){
+                    $$ =  newASTNode(LIST, $1, NULL);
+                }else{
+                    $$ = newASTNode(LIST, $1, $3);
+                }
+            };
+
+switch_stmt: switch_ open_bracket_ expr close_bracket_ open_curly_braces_ case_stmts close_curly_braces_ {
+    $$ = newASTNode(SWITCH, $3, $6);
+};
+
 
 %%
 

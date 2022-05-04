@@ -211,7 +211,8 @@ enum NodeTypes
     REPEAT,
     SWITCH,
     BREAK,
-    CONT
+    CONT,
+    CASE
 };
 
 struct ASTNode
@@ -249,7 +250,17 @@ struct flowControlNode
     struct ASTNode *step;
 };
 
-struct ASTNode *newASTNode(int nodetype, struct ASTNode *l, struct ASTNode *r)
+struct CaseNode
+{
+    int nodetype;
+    struct ASTNode *nextCase;
+    struct ASTNode *expr;
+    struct ASTNode *stmts;
+    int is_default;
+};
+
+struct ASTNode *
+newASTNode(int nodetype, struct ASTNode *l, struct ASTNode *r)
 {
     struct ASTNode *a = malloc(sizeof(struct ASTNode));
 
@@ -303,6 +314,23 @@ struct ASTNode *newFlowControlNode(int nodetype, struct ASTNode *exprBool, struc
     a->start = start;
     a->end = end;
     a->step = step;
+    return (struct ASTNode *)a;
+}
+
+struct ASTNode *newCaseNode(int nodetype, struct ASTNode *nextCase, struct ASTNode *expr, struct ASTNode *stmts, int is_default)
+{
+    struct CaseNode *a = malloc(sizeof(struct CaseNode));
+
+    if (!a)
+    {
+        // yyerror("out of space");
+        exit(0);
+    }
+    a->nodetype = nodetype;
+    a->expr = expr;
+    a->nextCase = nextCase;
+    a->is_default = is_default;
+    a->stmts = stmts;
     return (struct ASTNode *)a;
 }
 
@@ -646,6 +674,38 @@ Data eval(struct ASTNode *a, int *datatype)
             is_cont = 0;
         }
         is_break = 0;
+        break;
+    }
+    case SWITCH:
+    {
+        v = eval(a->l, datatype);
+        // printf("node type %d\n", a->l->nodetype);
+        float data = get_math_value(v, *datatype);
+        struct ASTNode *case_stmts = a->r;
+        // printf("switch conditoin %d direct_access %d datatype %d\n", data, v.int_, *datatype);
+        while (case_stmts->l)
+        {
+            struct CaseNode *case_stmt = (struct CaseNode *)case_stmts->l;
+            //  printf("is default %d\n", case_stmt->is_default);
+            if (case_stmt->is_default)
+            {
+                v = eval(case_stmt->stmts, datatype);
+                break;
+            }
+
+            Data t = eval(case_stmt->expr, datatype);
+            float data1 = get_math_value(t, *datatype);
+            // printf("case data %d\n", data1);
+            if (data1 == data)
+            {
+                // printf("inside case \n");
+                v = eval(case_stmt->stmts, datatype);
+                break;
+            }
+            if (!case_stmts->r)
+                break;
+            case_stmts = case_stmts->r;
+        }
         break;
     }
     default:
