@@ -77,25 +77,35 @@
 %left open_bracket_ close_bracket_
 
 
-%type <ast> expr;
+%type <ast> expr multiline;
 %type <ast> assign;
 %type <ast> declare_var;
 %type <ast> if_statement;
-%type <float_> line ;
+%type <ast> line ;
 
 %start input
 
 %%
 
 input: /* empty */ 
-        |  input line  ;
+        |  input line semicolumn_ {
+           printf("eval %f\n",eval($2));
+        };
 
-line: expr semicolumn_  {$$ = eval($1); printf("ans: %f \n",$$);} |
+multiline: /* empty */ {$$ = NULL;} |
+        line semicolumn_ multiline {
+            if ($3 == NULL)
+	                $$ = $1;
+                      else
+			$$ = newASTNode(LIST, $1, $3);
+        };
+line: expr   {$$ =  newASTNode(LIST,$1,NULL);} |
+    declare_var  {$$ =  newASTNode(LIST,$1,NULL);}| 
+    assign  {$$ =  newASTNode(LIST,$1,NULL);}| 
+    if_statement  {$$ =  newASTNode(LIST,$1,NULL);} | 
+    error;
 
-     declare_var semicolumn_ {$$ = eval($1); printf("declare: %f \n",$$);}| 
-     assign semicolumn_ {$$ = eval($1); printf("assign: %f \n",$$);}| 
-     /* if_statement {}| */
-        error;
+
 
 expr: expr plus_ expr {$$ =  newASTNode(PLUS,$1,$3);}|
         expr minus_ expr {$$ =  newASTNode(MINUS,$1,$3);} |
@@ -142,14 +152,14 @@ declare_var: dt_int_ var_name_ assign_ expr {$$ = newVariableDataNode(DECLARE, $
 
 
 assign:   var_name_ assign_ expr {$$ = newVariableDataNode(ASSIGN, $1,0,0,1,$3);} ;
-/*
 
 
 
-if_statement: if_ open_bracket_ expr close_bracket_ open_curly_braces_ input close_curly_braces_ else_ open_curly_braces_ input close_curly_braces_ {}
 
-| if_ open_bracket_ expr close_bracket_ open_curly_braces_ input close_curly_braces_ {  };
-*/
+if_statement: if_ open_bracket_ expr close_bracket_ open_curly_braces_ multiline close_curly_braces_ else_ open_curly_braces_ multiline close_curly_braces_ {
+    $$ = newFlowControlNode(IF,$3,$6,$10);}
+| if_ open_bracket_ expr close_bracket_ open_curly_braces_ multiline close_curly_braces_ { $$ = newFlowControlNode(IF,$3,$6,NULL);  };
+
 
 %%
 

@@ -277,7 +277,13 @@ double eval(struct ASTNode *a)
     double v;
     switch (a->nodetype)
     {
-
+    case LIST:
+    {
+        v = eval(a->l);
+        if (a->r)
+            v = eval(a->r);
+        break;
+    }
     case CONSTANT:
     {
         struct DataNode *t = (struct DataNode *)a;
@@ -417,6 +423,29 @@ double eval(struct ASTNode *a)
         v = eval(t->expr);
         assign_value(t->var_name_, (int)v, (float)v, 0, NULL);
         break;
+    }
+    case IF:
+    {
+        struct flowControlNode *t = (struct flowControlNode *)a;
+        printf("in if\n");
+        v = eval(t->exprBool);
+        if (v)
+        {
+            printf("in then \n");
+            if (t->thenStmt)
+                eval(t->thenStmt);
+            v = 1;
+        }
+        else
+        {
+
+            if (t->elseStmt)
+            {
+                printf("in else\n");
+                eval(t->elseStmt);
+            }
+            v = 0;
+        }
     }
     default:
         break;
