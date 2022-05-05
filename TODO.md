@@ -4,7 +4,7 @@
 - figure out how to combine floats/integers [done]
 - fix declare vs assign [done]
 - fix string double quotes
-- fix negative numbers in expressions
+- fix negative numbers in expressions [done]
 - FIX EVAL datatypes char [done]
 - FIX EVAL datatypes string
 - FIX add break/continue [done]

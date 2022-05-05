@@ -65,6 +65,8 @@
 
 %left plus_ minus_
 %left multiply_ divide_ modulus_
+%left UMINUS_GRAMMAR
+
 
 
 
@@ -145,6 +147,7 @@ expr: expr plus_ expr {$$ =  newASTNode(PLUS,$1,$3);}|
         expr multiply_ expr {$$ =  newASTNode(MUL,$1,$3);} |
         expr divide_ expr {$$ =  newASTNode(DIV,$1,$3);} |
         expr modulus_ expr {$$ =  newASTNode(MOD,$1,$3);} |
+        minus_  expr %prec UMINUS_GRAMMAR {$$ =  newASTNode(UMINUS,$2,NULL);} |
         open_bracket_ expr close_bracket_ {$$ = $2;} |
         
         expr gt_ expr {$$ = newASTNode(GT,$1,$3); }|
@@ -232,8 +235,12 @@ main(int argc, char **argv)
   return yyparse();
 }
 
-yyerror()
+void yyerror(char *s, ...)
 {
-        printf("Error detected in parsing\n");
-}
+  va_list ap;
+  va_start(ap, s);
 
+  fprintf(stderr, "%d: error: ", yylineno);
+  vfprintf(stderr, s, ap);
+  fprintf(stderr, "\n");
+}

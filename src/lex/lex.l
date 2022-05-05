@@ -20,12 +20,12 @@ DIGIT_NO_ZERO   [1-9]
 CHAR    [a-zA-z]
 
 %%
-[ \n\t]         ;                   // white space 
+[ \n\t]         ;                   
 
 
--?({ZERO}|{DIGIT_NO_ZERO}{DIGIT}*)  rule("integer",integer_,1,0)
+({ZERO}|{DIGIT_NO_ZERO}{DIGIT}*)  rule("integer",integer_,1,0)
 
--?({ZERO}|{DIGIT_NO_ZERO}{DIGIT}*\.{DIGIT}*) rule("float",float_,2,0)
+({ZERO}|{DIGIT_NO_ZERO}{DIGIT}*\.{DIGIT}*) rule("float",float_,2,0)
 
 \".*\" rule("string",string_,3,0)
 

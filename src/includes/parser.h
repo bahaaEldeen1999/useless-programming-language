@@ -11,6 +11,9 @@
 // 3 => char/
 // 4 => bool
 // 5 => string
+extern int yylineno; /* from lexer */
+void yyerror(char *s, ...);
+
 enum datatypes
 {
     INT,
@@ -117,7 +120,7 @@ float get_math_value(Data data, int datatype)
     {
         return (float)data.char_;
     }
-    // error
+    yyerror("expression doesn't cast to numerical value\n");
 }
 
 struct node *get_symbol(char *var_name)
@@ -149,9 +152,10 @@ int declare_variable(char *var_name, int datatype, int is_const, int is_assign, 
     if (get_symbol(var_name))
     {
         // error declared beofer
+        yyerror("variable declared before");
         printf("declared before\n");
         id = get_symbol(var_name)->id;
-        // return -1;
+        return -1;
     }
 
     symbol_table[id] = malloc(sizeof(*symbol_table[id]));
@@ -212,7 +216,8 @@ enum NodeTypes
     SWITCH,
     BREAK,
     CONT,
-    CASE
+    CASE,
+    UMINUS
 };
 
 struct ASTNode
@@ -304,7 +309,7 @@ struct ASTNode *newFlowControlNode(int nodetype, struct ASTNode *exprBool, struc
 
     if (!a)
     {
-        // yyerror("out of space");
+        yyerror("no space left on device\n");
         exit(0);
     }
     a->nodetype = nodetype;
@@ -323,7 +328,7 @@ struct ASTNode *newCaseNode(int nodetype, struct ASTNode *nextCase, struct ASTNo
 
     if (!a)
     {
-        // yyerror("out of space");
+        yyerror("no space left on device");
         exit(0);
     }
     a->nodetype = nodetype;
@@ -438,6 +443,7 @@ Data eval(struct ASTNode *a, int *datatype)
         if (!symbol)
         {
             // error;
+            yyerror("no variable declared with %s name\n", t->var_name_);
             printf("no symbol \n");
             *datatype = -1;
             return v;
@@ -472,8 +478,19 @@ Data eval(struct ASTNode *a, int *datatype)
         else
         {
             // error
+            yyerror("cant perform expression on 2 incompatible datatypes\n");
             v.int_ = 0;
             *datatype = -1;
+        }
+        break;
+    }
+    case UMINUS:
+    {
+        v = eval(a->l, datatype);
+        if (compatible_types(*datatype, FLOAT, 0))
+        {
+            float neg = -get_math_value(v, *datatype);
+            set_data_value(&v, *datatype, neg, neg, neg, NULL);
         }
         break;
     }
@@ -492,6 +509,7 @@ Data eval(struct ASTNode *a, int *datatype)
         else
         {
             // error
+            yyerror("can only perfrom mod on 2 ints\n");
             v.int_ = 0;
             *datatype = -1;
         }
@@ -509,6 +527,7 @@ Data eval(struct ASTNode *a, int *datatype)
         else
         {
             // error
+            yyerror("cant apply not to non numerical datatype\n");
             v.int_ = 0;
             *datatype = -1;
         }
