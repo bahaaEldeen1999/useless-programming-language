@@ -11,7 +11,7 @@
 3 => char/string
 4 => bool
 */
-#define rule(s1,s2,set_value,can_print)  { if(set_value==1){yylval.int_=atoi(yytext); }else if(set_value==2){ yylval.float_=atof(yytext); }else if(set_value == 3){ yylval.string_ = strdup(yytext); }else if(set_value==4){ if(yytext == "true") yylval.bool_ = 1;else yylval.bool_ = 0; } ;if(can_print)print(s1); return s2; }
+#define rule(s1,s2,set_value,can_print)  { if(set_value==1){yylval.int_=atoi(yytext); }else if(set_value==2){ yylval.float_=atof(yytext); }else if(set_value == 3){ yylval.string_ = strndup(yytext,strlen(yytext)); }else if(set_value==4){ if(yytext == "true") yylval.bool_ = 1;else yylval.bool_ = 0; } ;if(can_print)print(s1); return s2; }
 %}
 
 DIGIT   [0-9]
@@ -22,7 +22,7 @@ CHAR    [a-zA-z]
 %%
 [ \n\t]         ;                   
 
-
+\/\/.*  ;
 ({ZERO}|{DIGIT_NO_ZERO}{DIGIT}*)  rule("integer",integer_,1,0)
 
 ({ZERO}|{DIGIT_NO_ZERO}{DIGIT}*\.{DIGIT}*) rule("float",float_,2,0)
@@ -78,6 +78,9 @@ CHAR    [a-zA-z]
 "switch" rule("switch",switch_,0,0)
 "case" rule("case",case_,0,0)
 "default" rule("default",default_,0,0)
+"toggle_debug" rule("set debug",toggle_debug_,0,0)
+"print" rule("print",print_,0,0)
+"," rule("comma",comma_,0,0)
 
 {CHAR}({DIGIT}|{CHAR})* rule("var name",var_name_,3,0)
 %%

@@ -29,3 +29,8 @@
    - > break/continue;
 1. switch statement:
    - > switch (statement_returns_datatype) { <br> case (expr) {statement}; <br> default { statement }; <br>};
+1. Custom functions
+   - > print(data,datatype);
+   - > toggle_debug;
+1. Comments
+   - > // this is a signle line comment

@@ -13,6 +13,10 @@
 // 5 => string
 extern int yylineno; /* from lexer */
 void yyerror(char *s, ...);
+/*
+Global variable to control debugging priting
+*/
+int is_debug = 0;
 
 enum datatypes
 {
@@ -68,7 +72,7 @@ int set_data_value(Data *data, int datatype, int datai, float dataf, char datac,
     else if (datatype == STRING)
     {
 
-        strcpy(data->string_, datas);
+        strcpy(data->string_, (const char *)(datas + 1));
         return STRING;
     }
     return -1;
@@ -96,7 +100,7 @@ int set_data_value_from_other(Data *data, int datatype, Data data2)
     else if (datatype == STRING)
     {
 
-        strcpy(data->string_, data2.string_);
+        strcpy(data->string_, (const char *)data2.string_);
     }
     return 0;
 }
@@ -152,14 +156,15 @@ int declare_variable(char *var_name, int datatype, int is_const, int is_assign, 
     if (get_symbol(var_name))
     {
         // error declared beofer
-        yyerror("variable declared before");
-        printf("declared before\n");
+        yyerror("variable declared before ");
+        if (is_debug)
+            printf("declared before %s \n", var_name);
         id = get_symbol(var_name)->id;
         return -1;
     }
 
     symbol_table[id] = malloc(sizeof(*symbol_table[id]));
-    strcpy(symbol_table[id]->name, var_name);
+    strcpy(symbol_table[id]->name, (const char *)var_name);
     symbol_table[id]->id = id;
     symbol_table[id]->type = datatype;
     symbol_table[id]->is_const = is_const;
@@ -217,7 +222,9 @@ enum NodeTypes
     BREAK,
     CONT,
     CASE,
-    UMINUS
+    UMINUS,
+    TOGGLE_DEBUG,
+    PRINT
 };
 
 struct ASTNode
@@ -225,6 +232,14 @@ struct ASTNode
     int nodetype;
     struct ASTNode *l;
     struct ASTNode *r;
+};
+
+struct PrintNode
+{
+    int nodetype;
+    struct ASTNode *expr;
+    int datatype;
+    char string[MAX_STRING];
 };
 
 struct DataNode
@@ -237,7 +252,7 @@ struct DataNode
 struct VariableDataNode
 {
     int nodetype;
-    char *var_name_[MAX_NAME_LENGTH];
+    char var_name_[MAX_NAME_LENGTH];
     int datatype;
     struct ASTNode *expr;
     int is_const;
@@ -282,6 +297,26 @@ newASTNode(int nodetype, struct ASTNode *l, struct ASTNode *r)
     return a;
 }
 
+struct ASTNode *
+newPrintNode(int nodetype, struct ASTNode *expr, int datatype, char *string)
+{
+    struct PrintNode *a = malloc(sizeof(struct PrintNode));
+
+    if (!a)
+    {
+        yyerror("out of space");
+        exit(0);
+    }
+    a->nodetype = nodetype;
+    a->expr = expr;
+    a->datatype = datatype;
+    if (string)
+        strcpy(a->string, (const char *)string);
+    // printf("vvvvv %d \n", ((struct DataNode *)l)->data.int_);
+    // printf("vvvvv %d \n", ((struct DataNode *)r)->data.int_);
+    return (struct ASTNode *)a;
+}
+
 struct ASTNode *newDataNode(int nodeType, int datatype, int datai, float dataf, char datac, char *datas)
 {
     struct DataNode *a = malloc(sizeof(struct DataNode));
@@ -295,7 +330,7 @@ struct ASTNode *newVariableDataNode(int nodeType, char *var_name_, int datatype,
 {
     struct VariableDataNode *a = malloc(sizeof(struct VariableDataNode));
     a->nodetype = nodeType;
-    strcpy(a->var_name_, var_name_);
+    strcpy(a->var_name_, (const char *)var_name_);
     a->expr = expr;
     a->is_assign = is_assign;
     a->is_const = is_const;
@@ -444,7 +479,8 @@ Data eval(struct ASTNode *a, int *datatype)
         {
             // error;
             yyerror("no variable declared with %s name\n", t->var_name_);
-            printf("no symbol \n");
+            if (is_debug)
+                printf("no symbol \n");
             *datatype = -1;
             return v;
         }
@@ -607,11 +643,13 @@ Data eval(struct ASTNode *a, int *datatype)
     case IF:
     {
         struct flowControlNode *t = (struct flowControlNode *)a;
-        printf("in if\n");
+        if (is_debug)
+            printf("in if\n");
         v = eval(t->exprBool, datatype);
         if (get_math_value(v, *datatype))
         {
-            printf("in then \n");
+            if (is_debug)
+                printf("in then \n");
             if (t->thenStmt)
                 eval(t->thenStmt, datatype);
             v.int_ = 1;
@@ -621,7 +659,8 @@ Data eval(struct ASTNode *a, int *datatype)
 
             if (t->elseStmt)
             {
-                printf("in else\n");
+                if (is_debug)
+                    printf("in else\n");
                 eval(t->elseStmt, datatype);
             }
             v.int_ = 0;
@@ -631,12 +670,14 @@ Data eval(struct ASTNode *a, int *datatype)
     case WHILE:
     {
         struct flowControlNode *t = (struct flowControlNode *)a;
-        printf("in while\n");
+        if (is_debug)
+            printf("in while\n");
         v = eval(t->exprBool, datatype);
         while (get_math_value(v, *datatype))
         {
             // printf("math value %f \n", get_math_value(v, *datatype));
-            printf("in while loop \n");
+            if (is_debug)
+                printf("in while loop \n");
             eval(t->thenStmt, datatype);
             if (is_break)
                 break;
@@ -649,13 +690,15 @@ Data eval(struct ASTNode *a, int *datatype)
     case REPEAT:
     {
         struct flowControlNode *t = (struct flowControlNode *)a;
-        printf("in repeat\n");
+        if (is_debug)
+            printf("in repeat\n");
         v = eval(t->exprBool, datatype);
         int flag = 1;
         while (!get_math_value(v, *datatype) || flag)
         {
             // printf("math value %f \n", get_math_value(v, *datatype));
-            printf("in repat loop \n");
+            if (is_debug)
+                printf("in repat loop \n");
             eval(t->thenStmt, datatype);
             if (is_break)
                 break;
@@ -669,7 +712,8 @@ Data eval(struct ASTNode *a, int *datatype)
     case FOR:
     {
         struct flowControlNode *t = (struct flowControlNode *)a;
-        printf("in FOR\n");
+        if (is_debug)
+            printf("in FOR\n");
         Data startData = eval(t->start, datatype);
         float start = get_math_value(startData, *datatype);
         Data endData = eval(t->end, datatype);
@@ -677,11 +721,13 @@ Data eval(struct ASTNode *a, int *datatype)
         Data stepData = eval(t->step, datatype);
         float step = get_math_value(stepData, *datatype);
         char curr_var_name[MAX_NAME_LENGTH];
-        strcpy(curr_var_name, ((struct VariableDataNode *)t->start)->var_name_);
-        printf("start %f end %f step %f loop %s\n", start, end, step, curr_var_name);
+        strcpy(curr_var_name, (const char *)((struct VariableDataNode *)t->start)->var_name_);
+        if (is_debug)
+            printf("start %f end %f step %f loop %s\n", start, end, step, curr_var_name);
         for (start; start < end; start = start + step)
         {
-            printf("in for loop %f start %s\n", start, curr_var_name);
+            if (is_debug)
+                printf("in for loop %f start %s\n", start, curr_var_name);
             v = eval(t->thenStmt, datatype);
             if (is_break)
                 break;
@@ -725,6 +771,41 @@ Data eval(struct ASTNode *a, int *datatype)
                 break;
             case_stmts = case_stmts->r;
         }
+        break;
+    }
+    case PRINT:
+    {
+        struct PrintNode *t = (struct PrintNode *)a;
+        if (t->datatype == STRING)
+        {
+            printf("%s\n", t->string);
+            break;
+        }
+        v = eval(t->expr, datatype);
+        float value = get_math_value(v, *datatype);
+        switch (t->datatype)
+        {
+        case INT:
+            printf("%d\n", (int)value);
+            break;
+        case BOOL:
+            printf("%d\n", (int)value);
+            break;
+        case CHAR:
+            printf("%c\n", (char)value);
+            break;
+        case FLOAT:
+            printf("%f\n", (float)value);
+            break;
+
+        default:
+            break;
+        }
+        break;
+    }
+    case TOGGLE_DEBUG:
+    {
+        is_debug = !is_debug;
         break;
     }
     default:
