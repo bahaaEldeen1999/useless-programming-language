@@ -1,0 +1,21 @@
+int person = 3;
+
+switch(person)
+{
+    case(0)
+    {
+        print("abo sedo",string);
+    };
+    case(1)
+    {
+        print("Bahaa ",string);
+    };
+    case(2)
+    {
+        print("ebrahim",string);
+    };
+    default
+    {
+        print("tarek",string);
+    };
+};
