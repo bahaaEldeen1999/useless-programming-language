@@ -186,6 +186,7 @@ int assign_value(char *var_name, int datai, float dataf, char datac, char *datas
     {
         // no variable declared
         // variable is const cant assign
+        yyerror("cannot assign value to constant variable\n");
         return -1;
     }
     int datatype = symbol->type;
