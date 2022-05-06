@@ -48,3 +48,7 @@
 - switch
 - case
 - default
+- print
+- toggle_debug
+- var_name
+- comma
