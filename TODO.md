@@ -9,3 +9,6 @@
 - FIX EVAL datatypes string
 - FIX add break/continue [done]
 - Switch is integer only [done]
+- add FREE after evaluation
+- add compiling capabilities
+- define quadraples
