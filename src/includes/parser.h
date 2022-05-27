@@ -526,12 +526,28 @@ Data eval(struct ASTNode *a, int *datatype)
         struct DataNode *t = (struct DataNode *)a;
         set_data_value_from_other(&v, t->datatype, t->data);
         *datatype = t->datatype;
-        // = , v , null, tIndx
-        // return tIndx
 
         Quadraple q;
         sprintf(q.op, "assign");
-        sprintf(q.a, "%d", v.int_); // only compute int
+        switch (t->datatype)
+        {
+        case INT:
+            sprintf(q.a, "%d", v.int_);
+            break;
+        case FLOAT:
+            sprintf(q.a, "%f", v.float_);
+            break;
+        case CHAR:
+            sprintf(q.a, "'%c'", v.char_);
+            break;
+        case BOOL:
+            sprintf(q.a, "%d", v.bool_);
+            break;
+
+        default:
+            break;
+        }
+
         sprintf(q.b, "null");
         sprintf(q.t, "t%d", tIndx);
         sprintf(v.t, "t%d", tIndx);
@@ -689,8 +705,7 @@ Data eval(struct ASTNode *a, int *datatype)
         if (t->is_assign || t->is_const)
         {
             v = eval(t->expr, datatype);
-            // printf("data int %d\n", v.int_);
-            // printf("data float %f\n", v.float_);
+
             // assume mus assign [TODO]
             Quadraple q;
             sprintf(q.op, "assign");
@@ -729,11 +744,7 @@ Data eval(struct ASTNode *a, int *datatype)
         default:
             break;
         }
-        //*datatype = t->datatype;
-        // printf("datatype %d\n", *datatype);
 
-        // declare_variable(t->var_name_, t->datatype, t->is_const, t->is_assign, v.int_, v.float_, v.char_, NULL);
-        // strcpy(curr_var_name, t->var_name_);
         break;
     }
     case ASSIGN:
@@ -780,30 +791,7 @@ Data eval(struct ASTNode *a, int *datatype)
         if (is_debug)
             printf("in if\n");
         v = eval(t->exprBool, datatype);
-        // generate both if & then
-        /**
 
-        if (get_math_value(v, *datatype))
-        {
-            if (is_debug)
-                printf("in then \n");
-            if (t->thenStmt)
-                eval(t->thenStmt, datatype);
-            v.int_ = 1;
-        }
-        else
-        {
-
-            if (t->elseStmt)
-            {
-                if (is_debug)
-                    printf("in else\n");
-                eval(t->elseStmt, datatype);
-            }
-            v.int_ = 0;
-        }
-
-        **/
         // jnt to else label
         // generate all then
         // gemerate labelelse
@@ -861,21 +849,7 @@ Data eval(struct ASTNode *a, int *datatype)
         struct flowControlNode *t = (struct flowControlNode *)a;
         if (is_debug)
             printf("in while\n");
-        // v = eval(t->exprBool, datatype);
-        /**
-         while (get_math_value(v, *datatype))
-        {
-            // printf("math value %f \n", get_math_value(v, *datatype));
-            if (is_debug)
-                printf("in while loop \n");
-            eval(t->thenStmt, datatype);
-            if (is_break)
-                break;
-            v = eval(t->exprBool, datatype);
-            is_cont = 0;
-        }
-        is_break = 0;
-        **/
+
         // generate loop by jumps and condition
         // if exprBool then jump label
 
@@ -931,23 +905,7 @@ Data eval(struct ASTNode *a, int *datatype)
         struct flowControlNode *t = (struct flowControlNode *)a;
         if (is_debug)
             printf("in repeat\n");
-        // v = eval(t->exprBool, datatype);
-        int flag = 1;
-        /**
-        while (!get_math_value(v, *datatype) || flag)
-        {
-            // printf("math value %f \n", get_math_value(v, *datatype));
-            if (is_debug)
-                printf("in repat loop \n");
-            eval(t->thenStmt, datatype);
-            if (is_break)
-                break;
-            is_cont = 0;
-            v = eval(t->exprBool, datatype);
-            flag = 0;
-        }
-        is_break = 0;
-        **/
+
         // same as while loop only difference in jt
         // first add while label
         Quadraple q;
@@ -1001,33 +959,7 @@ Data eval(struct ASTNode *a, int *datatype)
         struct flowControlNode *t = (struct flowControlNode *)a;
         if (is_debug)
             printf("in FOR\n");
-        /**
-        Data startData = eval(t->start, datatype);
-        float start = get_math_value(startData, *datatype);
-        Data endData = eval(t->end, datatype);
-        float end = get_math_value(endData, *datatype);
-        Data stepData = eval(t->step, datatype);
-        float step = get_math_value(stepData, *datatype);
-        char curr_var_name[MAX_NAME_LENGTH];
-        strcpy(curr_var_name, (const char *)((struct VariableDataNode *)t->start)->var_name_);
-        if (is_debug)
-            printf("start %f end %f step %f loop %s\n", start, end, step, curr_var_name);
-        for (start; start < end; start = start + step)
-        {
-            if (is_debug)
-                printf("in for loop %f start %s\n", start, curr_var_name);
-            v = eval(t->thenStmt, datatype);
-            if (is_break)
-                break;
-            endData = eval(t->end, datatype);
-            end = get_math_value(endData, *datatype);
-            stepData = eval(t->step, datatype);
-            step = get_math_value(stepData, *datatype);
-            assign_value(curr_var_name, start + step, start + step, start + step, NULL);
-            is_cont = 0;
-        }
-        is_break = 0;
-        **/
+
         Quadraple q;
         // initializatio of for
         Data startData = eval(t->start, datatype);
@@ -1179,41 +1111,6 @@ Data eval(struct ASTNode *a, int *datatype)
         printQuadraple(q);
         labelIndx += caseIndx + 1;
         currSwitch++;
-        break;
-    }
-    case PRINT:
-    {
-        struct PrintNode *t = (struct PrintNode *)a;
-        if (t->datatype == STRING)
-        {
-            printf("%s\n", t->string);
-            break;
-        }
-        v = eval(t->expr, datatype);
-        float value = get_math_value(v, *datatype);
-        switch (t->datatype)
-        {
-        case INT:
-            printf("%d\n", (int)value);
-            break;
-        case BOOL:
-            printf("%d\n", (int)value);
-            break;
-        case CHAR:
-            printf("%c\n", (char)value);
-            break;
-        case FLOAT:
-            printf("%f\n", (float)value);
-            break;
-
-        default:
-            break;
-        }
-        break;
-    }
-    case TOGGLE_DEBUG:
-    {
-        is_debug = !is_debug;
         break;
     }
     default:
