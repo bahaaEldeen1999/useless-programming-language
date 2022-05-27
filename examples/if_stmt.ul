@@ -9,10 +9,13 @@ else
     if(x > y)
     {
       //  print("greater",string);
+      x = 10;
     }else 
     {
+
         if(x < y)
         {
+            y = 5;
           //  print("smaller",string);
         };
     };
