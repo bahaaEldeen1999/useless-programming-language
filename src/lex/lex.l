@@ -12,6 +12,9 @@
 4 => bool
 */
 #define rule(s1,s2,set_value,can_print)  { if(set_value==1){yylval.int_=atoi(yytext); }else if(set_value==2){ yylval.float_=atof(yytext); }else if(set_value == 3){ yylval.string_ = strndup(yytext,strlen(yytext)); }else if(set_value==4){ if(yytext == "true") yylval.bool_ = 1;else yylval.bool_ = 0; } ;if(can_print)print(s1); return s2; }
+
+// declare print all quadraples 
+void printAllQuadraples();
 %}
 
 DIGIT   [0-9]
@@ -83,4 +86,6 @@ CHAR    [a-zA-z]
 "," rule("comma",comma_,0,0)
 
 {CHAR}({DIGIT}|{CHAR})* rule("var name",var_name_,3,0)
+
+ <<EOF>> {printAllQuadraples();yyterminate();return EOF_;}
 %%

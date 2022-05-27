@@ -62,6 +62,7 @@ int yylex();
 %token toggle_debug_ 
 %token print_
 %token comma_
+%token EOF_
 
 
 %left plus_ minus_
@@ -90,41 +91,15 @@ int yylex();
 
 %%
 
+
 input: /* empty */ 
         |  input line semicolumn_ {
             int datatype=-1;
             Data v = eval($2,&datatype);
-            /*
-            switch( datatype){
-                case INT:
-                case BOOL:
-                {
-                    printf("int %d \n",v.int_);
-                    break;
-                }
-                case CHAR:
-                {
-                    printf("char %c \n",v.char_);
-                    break;
-                }
-                case FLOAT:
-                {
-                    printf("float %f \n",v.float_);
-                    break;
-                }
-                case STRING:
-                {
-                    printf("string %s \n",v.string_);
-                    break;
-                }
-
-            }
-            */
-    
         };
         | input error semicolumn_ {
             yyerrok;
-        };
+        }; | EOF_ { printf("YACC\n"); };
 
 multiline: /* empty */ {$$ = NULL;} |
         line semicolumn_ multiline {
@@ -173,21 +148,21 @@ declare_var_with_assign: dt_int_ var_name_ assign_ expr {$$ = newVariableDataNod
 | dt_float_ var_name_ assign_ expr {$$ = newVariableDataNode(DECLARE, $2,FLOAT,0,1,$4);} 
 | dt_bool_ var_name_ assign_ expr {$$ = newVariableDataNode(DECLARE, $2,BOOL,0,1,$4);} 
 | dt_char_ var_name_ assign_ expr {$$ = newVariableDataNode(DECLARE, $2,CHAR,0,1,$4);} ;
-/* |  dt_string_ var_name_ assign_ string_ {$$ = newVariableDataNode(DECLARE, $2,STRING,0,1,$4);};  */
+
 
 declare_var: declare_var_with_assign 
 | const_ dt_int_ var_name_ assign_ expr {$$ = newVariableDataNode(DECLARE, $3,INT,1,1,$5);} 
 |const_ dt_float_ var_name_ assign_ expr {$$ = newVariableDataNode(DECLARE, $3,FLOAT,1,1,$5);} 
 |const_ dt_bool_ var_name_ assign_ expr {$$ = newVariableDataNode(DECLARE, $3,BOOL,1,1,$5);} 
 | const_ dt_char_ var_name_ assign_ expr {$$ = newVariableDataNode(DECLARE, $3,CHAR,1,1,$5);} 
-/* | const_ dt_string_ var_name_ assign_ string_ {$$ = newVariableDataNode(DECLARE, $3,STRING,1,1,$5);};  */
+
 
 
 |dt_int_ var_name_  {$$ = newVariableDataNode(DECLARE, $2,INT,0,0,NULL);} 
 | dt_float_ var_name_  {$$ = newVariableDataNode(DECLARE, $2,FLOAT,0,0,NULL);} 
 | dt_bool_ var_name_  {$$ =newVariableDataNode(DECLARE, $2,BOOL,0,0,NULL);} 
 | dt_char_ var_name_{$$ =newVariableDataNode(DECLARE, $2,CHAR,0,0,NULL);} ;
-/* |  dt_string_ var_name_ {$$ = newVariableDataNode(DECLARE, $2,STRING,0,0,NULL);};   */
+
 
 
 assign:   var_name_ assign_ expr {$$ = newVariableDataNode(ASSIGN, $1,0,0,1,$3);} ;
@@ -226,6 +201,9 @@ case_stmts: /* nothing */ {$$ = NULL;} |
 
 switch_stmt: switch_ open_bracket_ expr close_bracket_ open_curly_braces_ case_stmts close_curly_braces_ {
     $$ = newASTNode(SWITCH, $3, $6);
+
+
+
 };
 
 
@@ -245,3 +223,5 @@ void yyerror(char *s, ...)
   vfprintf(stderr, s, ap);
   fprintf(stderr, "\n");
 }
+
+
