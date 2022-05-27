@@ -12,3 +12,4 @@
 - add FREE after evaluation
 - add compiling capabilities
 - define quadraples
+- add scoping [opt]
