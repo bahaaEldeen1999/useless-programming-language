@@ -504,16 +504,7 @@ Data eval(struct ASTNode *a, int *datatype)
     }
     switch (a->nodetype)
     {
-    case BREAK:
-    {
-        is_break = 1;
-        break;
-    }
-    case CONT:
-    {
-        is_cont = 1;
-        break;
-    }
+
     case LIST:
     {
         v = eval(a->l, datatype);
