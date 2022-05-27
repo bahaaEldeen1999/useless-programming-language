@@ -26,13 +26,14 @@ enum datatypes
     BOOL,
     STRING
 };
-typedef union
+typedef struct
 {
     int int_;
     float float_;
     char char_;
     char string_[MAX_STRING];
     int bool_;
+    char t[100];
 } Data;
 
 struct node
@@ -228,6 +229,38 @@ enum NodeTypes
     PRINT
 };
 
+char *NodeTypesOperations[] =
+    {
+        "PLUS",
+        "MINUS",
+        "MUL",
+        "DIV",
+        "MOD",
+        "GT",
+        "GTE",
+        "LT",
+        "LTE",
+        "EQ",
+        "NOTEQ",
+        "ASSIGN",
+        "AND",
+        "OR",
+        "NOT",
+        "CONSTANT",
+        "VARIABLE",
+        "LIST",
+        "DECLARE",
+        "IF",
+        "WHILE",
+        "FOR",
+        "REPEAT",
+        "SWITCH",
+        "BREAK",
+        "CONT",
+        "CASE",
+        "UMINUS",
+        "TOGGLE_DEBUG",
+        "PRINT"};
 struct ASTNode
 {
     int nodetype;
@@ -439,6 +472,28 @@ int eval_math_ops(int op, Data *v, float num1, float num2)
 // global break and continue
 int is_break = 0;
 int is_cont = 0;
+
+// global index of temp variable
+unsigned int tIndx = 0;
+// global label index
+unsigned int labelIndx = 0;
+
+// array of quads to hold all quads
+typedef struct
+{
+    char op[100];
+    char a[100]; // arg1
+    char b[100]; // arg2
+    char t[100]; // result
+} Quadraple;
+
+void printQuadraple(Quadraple q)
+{
+    printf("%s \t, %s \t, %s \t, %s ;\n", q.op, q.a, q.b, q.t);
+}
+
+Quadraple quadraples[10000];
+int currQuad = 0;
 Data eval(struct ASTNode *a, int *datatype)
 {
     Data v;
@@ -470,6 +525,20 @@ Data eval(struct ASTNode *a, int *datatype)
         struct DataNode *t = (struct DataNode *)a;
         set_data_value_from_other(&v, t->datatype, t->data);
         *datatype = t->datatype;
+        // = , v , null, tIndx
+        // return tIndx
+
+        Quadraple q;
+        sprintf(q.op, "assign");
+        sprintf(q.a, "%d", v.int_); // only compute int
+        sprintf(q.b, "null");
+        sprintf(q.t, "t%d", tIndx);
+        sprintf(v.t, "t%d", tIndx);
+        tIndx++;
+        quadraples[currQuad] = q;
+        currQuad++;
+        printQuadraple(q);
+
         break;
     }
     case VARIABLE:
@@ -487,6 +556,9 @@ Data eval(struct ASTNode *a, int *datatype)
         }
         set_data_value_from_other(&v, symbol->type, symbol->data);
         *datatype = symbol->type;
+
+        sprintf(v.t, "%s", symbol->name);
+
         break;
     }
     case PLUS:
@@ -511,6 +583,16 @@ Data eval(struct ASTNode *a, int *datatype)
             float num1 = get_math_value(v1, datatype1);
             float num2 = get_math_value(v2, datatype2);
             *datatype = eval_math_ops(a->nodetype, &v, num1, num2);
+            Quadraple q;
+            sprintf(q.op, NodeTypesOperations[a->nodetype]);
+            sprintf(q.a, "%s", v1.t); // only compute int
+            sprintf(q.b, "%s", v2.t);
+            sprintf(q.t, "t%d", tIndx);
+            sprintf(v.t, "t%d", tIndx);
+            tIndx++;
+            quadraples[currQuad] = q;
+            currQuad++;
+            printQuadraple(q);
         }
         else
         {
@@ -528,6 +610,16 @@ Data eval(struct ASTNode *a, int *datatype)
         {
             float neg = -get_math_value(v, *datatype);
             set_data_value(&v, *datatype, neg, neg, neg, NULL);
+            Quadraple q;
+            sprintf(q.op, NodeTypesOperations[a->nodetype]);
+            sprintf(q.a, "%s", v.t); // only compute int
+            sprintf(q.b, "null");
+            sprintf(q.t, "t%d", tIndx);
+            sprintf(v.t, "t%d", tIndx);
+            tIndx++;
+            quadraples[currQuad] = q;
+            currQuad++;
+            printQuadraple(q);
         }
         break;
     }
@@ -542,6 +634,16 @@ Data eval(struct ASTNode *a, int *datatype)
             int num1 = (int)get_math_value(v1, datatype1);
             int num2 = (int)get_math_value(v2, datatype2);
             *datatype = eval_math_ops(a->nodetype, &v, num1, num2);
+            Quadraple q;
+            sprintf(q.op, NodeTypesOperations[a->nodetype]);
+            sprintf(q.a, "%s", v1.t);
+            sprintf(q.b, "%s", v2.t);
+            sprintf(q.t, "t%d", tIndx);
+            sprintf(v.t, "t%d", tIndx);
+            tIndx++;
+            quadraples[currQuad] = q;
+            currQuad++;
+            printQuadraple(q);
         }
         else
         {
@@ -560,6 +662,16 @@ Data eval(struct ASTNode *a, int *datatype)
         {
             int num1 = (int)get_math_value(v1, datatype1);
             *datatype = eval_math_ops(a->nodetype, &v, num1, 0);
+            Quadraple q;
+            sprintf(q.op, NodeTypesOperations[a->nodetype]);
+            sprintf(q.a, "%s", v1.t); // only compute int
+            sprintf(q.b, "null");
+            sprintf(q.t, "t%d", tIndx);
+            sprintf(v.t, "t%d", tIndx);
+            tIndx++;
+            quadraples[currQuad] = q;
+            currQuad++;
+            printQuadraple(q);
         }
         else
         {
@@ -578,9 +690,20 @@ Data eval(struct ASTNode *a, int *datatype)
             v = eval(t->expr, datatype);
             // printf("data int %d\n", v.int_);
             // printf("data float %f\n", v.float_);
+            // assume mus assign [TODO]
+            Quadraple q;
+            sprintf(q.op, "assign");
+            sprintf(q.a, "%s", v.t); // only compute int
+            sprintf(q.b, "null");
+            sprintf(q.t, "%s", t->var_name_);
+            sprintf(v.t, "%s", t->var_name_);
+            quadraples[currQuad] = q;
+            currQuad++;
+            printQuadraple(q);
         }
         else
         {
+            sprintf(v.t, "%s", t->var_name_);
             v.int_ = 0;
             *datatype = t->datatype;
         }
@@ -617,6 +740,15 @@ Data eval(struct ASTNode *a, int *datatype)
         struct VariableDataNode *t = (struct VariableDataNode *)a;
 
         v = eval(t->expr, datatype);
+        Quadraple q;
+        sprintf(q.op, "assign");
+        sprintf(q.a, "%s", v.t);
+        sprintf(q.b, "null");
+        sprintf(q.t, "%s", t->var_name_);
+        sprintf(v.t, "%s", t->var_name_);
+        quadraples[currQuad] = q;
+        currQuad++;
+        printQuadraple(q);
         switch (*datatype)
         {
         case INT:
@@ -647,6 +779,9 @@ Data eval(struct ASTNode *a, int *datatype)
         if (is_debug)
             printf("in if\n");
         v = eval(t->exprBool, datatype);
+        // generate both if & then
+        /**
+
         if (get_math_value(v, *datatype))
         {
             if (is_debug)
@@ -666,6 +801,54 @@ Data eval(struct ASTNode *a, int *datatype)
             }
             v.int_ = 0;
         }
+
+        **/
+        // jnt to else label
+        // generate all then
+        // gemerate labelelse
+        // generate all else
+        if (t->thenStmt)
+        {
+            Quadraple q;
+            sprintf(q.op, "JNT");
+            sprintf(q.a, "label%d", labelIndx);
+            sprintf(q.b, "null");
+            sprintf(q.t, "null");
+            quadraples[currQuad] = q;
+            currQuad++;
+            printQuadraple(q);
+            eval(t->thenStmt, datatype);
+            sprintf(q.op, "label");
+            sprintf(q.a, "label%d", labelIndx);
+            sprintf(q.b, "null");
+            sprintf(q.t, "null");
+            quadraples[currQuad] = q;
+            currQuad++;
+            printQuadraple(q);
+            labelIndx++;
+            // jump to end of if if then is executed
+            sprintf(q.op, "JMP");
+            sprintf(q.a, "label%d", labelIndx);
+            sprintf(q.b, "null");
+            sprintf(q.t, "null");
+            quadraples[currQuad] = q;
+            currQuad++;
+            printQuadraple(q);
+        }
+        if (t->elseStmt)
+        {
+            eval(t->elseStmt, datatype);
+        }
+        // add end if label
+        Quadraple q;
+        sprintf(q.op, "label");
+        sprintf(q.a, "label%d", labelIndx);
+        sprintf(q.b, "null");
+        sprintf(q.t, "null");
+        quadraples[currQuad] = q;
+        currQuad++;
+        printQuadraple(q);
+
         break;
     }
     case WHILE:
