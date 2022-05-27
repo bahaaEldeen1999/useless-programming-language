@@ -930,7 +930,7 @@ Data eval(struct ASTNode *a, int *datatype)
         struct flowControlNode *t = (struct flowControlNode *)a;
         if (is_debug)
             printf("in repeat\n");
-        v = eval(t->exprBool, datatype);
+        // v = eval(t->exprBool, datatype);
         int flag = 1;
         /**
         while (!get_math_value(v, *datatype) || flag)
@@ -947,6 +947,51 @@ Data eval(struct ASTNode *a, int *datatype)
         }
         is_break = 0;
         **/
+        // same as while loop only difference in jt
+        // first add while label
+        Quadraple q;
+        sprintf(q.op, "label");
+        sprintf(q.a, "label%d", labelIndx);
+        sprintf(q.b, "null");
+        sprintf(q.t, "null");
+        quadraples[currQuad] = q;
+        currQuad++;
+        printQuadraple(q);
+        labelIndx++;
+
+        // add expression
+        v = eval(t->exprBool, datatype);
+
+        // add JT to end of loop
+        sprintf(q.op, "JT");
+        sprintf(q.a, "label%d", labelIndx);
+        sprintf(q.b, "null");
+        sprintf(q.t, "null");
+        quadraples[currQuad] = q;
+        currQuad++;
+        printQuadraple(q);
+
+        // add while body
+        eval(t->thenStmt, datatype);
+
+        // add jmp to loop start label
+        sprintf(q.op, "JMP");
+        sprintf(q.a, "label%d", labelIndx - 1);
+        sprintf(q.b, "null");
+        sprintf(q.t, "null");
+        quadraples[currQuad] = q;
+        currQuad++;
+        printQuadraple(q);
+
+        // add end label of loop
+        sprintf(q.op, "label");
+        sprintf(q.a, "label%d", labelIndx);
+        sprintf(q.b, "null");
+        sprintf(q.t, "null");
+        quadraples[currQuad] = q;
+        currQuad++;
+        printQuadraple(q);
+        labelIndx++;
 
         break;
     }
@@ -955,6 +1000,7 @@ Data eval(struct ASTNode *a, int *datatype)
         struct flowControlNode *t = (struct flowControlNode *)a;
         if (is_debug)
             printf("in FOR\n");
+        /**
         Data startData = eval(t->start, datatype);
         float start = get_math_value(startData, *datatype);
         Data endData = eval(t->end, datatype);
@@ -980,6 +1026,65 @@ Data eval(struct ASTNode *a, int *datatype)
             is_cont = 0;
         }
         is_break = 0;
+        **/
+        Quadraple q;
+        // initializatio of for
+        Data startData = eval(t->start, datatype);
+        // add condtion label
+        sprintf(q.op, "label");
+        sprintf(q.a, "label%d", labelIndx);
+        sprintf(q.b, "null");
+        sprintf(q.t, "null");
+        quadraples[currQuad] = q;
+        currQuad++;
+        printQuadraple(q);
+        // condition
+        Data endData = eval(t->end, datatype);
+        sprintf(q.op, "LT");
+        sprintf(q.a, "%s", startData.t);
+        sprintf(q.b, "%s", endData.t);
+        sprintf(q.t, "t%d", tIndx);
+        tIndx++;
+        quadraples[currQuad] = q;
+        currQuad++;
+        printQuadraple(q);
+        // jump to end label if not true
+        sprintf(q.op, "JNT");
+        sprintf(q.a, "label%d", labelIndx + 1);
+        sprintf(q.b, "null");
+        sprintf(q.t, "null");
+        quadraples[currQuad] = q;
+        currQuad++;
+        printQuadraple(q);
+        // do for statement
+        v = eval(t->thenStmt, datatype);
+        // do step statement
+        Data stepData = eval(t->step, datatype);
+        sprintf(q.op, "PLUS");
+        sprintf(q.a, "%s", startData.t);
+        sprintf(q.b, "%s", stepData.t);
+        sprintf(q.t, "%s", startData.t);
+        quadraples[currQuad] = q;
+        currQuad++;
+        printQuadraple(q);
+        // jump to condition check
+        sprintf(q.op, "JMP");
+        sprintf(q.a, "label%d", labelIndx);
+        sprintf(q.b, "null");
+        sprintf(q.t, "null");
+        quadraples[currQuad] = q;
+        currQuad++;
+        printQuadraple(q);
+        // add end label
+        sprintf(q.op, "label");
+        sprintf(q.a, "label%d", labelIndx + 1);
+        sprintf(q.b, "null");
+        sprintf(q.t, "null");
+        quadraples[currQuad] = q;
+        currQuad++;
+        printQuadraple(q);
+
+        labelIndx += 2;
         break;
     }
     case SWITCH:
