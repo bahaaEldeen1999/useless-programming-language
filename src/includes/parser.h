@@ -511,6 +511,49 @@ void printAllQuadraples()
     fclose(fptr);
 }
 
+void printSymbolTable()
+{
+    FILE *fptr;
+    fptr = fopen("../outputs/symoltable.st", "w");
+
+    /**
+     *
+    char name[MAX_NAME_LENGTH];
+    int type;
+    int id;
+    int is_const;
+    Data data;
+     *
+     */
+    for (int i = 0; i < MAX_VARS; i++)
+    {
+        if (!symbol_table[i])
+            break;
+        int datatype = symbol_table[i]->type;
+        if (datatype == INT)
+        {
+
+            printf("id %d ,name %s, data %d ,type %d ,is_const %d \n", symbol_table[i]->id, symbol_table[i]->name, symbol_table[i]->data.int_, symbol_table[i]->type, symbol_table[i]->is_const);
+            fprintf(fptr, "id %d ,name %s, data %d ,type %d ,is_const %d \n", symbol_table[i]->id, symbol_table[i]->name, symbol_table[i]->data.int_, symbol_table[i]->type, symbol_table[i]->is_const);
+        }
+        else if (datatype == FLOAT)
+        {
+            printf("id %d ,name %s,data %f ,type %d ,is_const %d \n", symbol_table[i]->id, symbol_table[i]->name, symbol_table[i]->data.float_, symbol_table[i]->type, symbol_table[i]->is_const);
+            fprintf(fptr, "id %d ,name %s,data %f ,type %d ,is_const %d \n", symbol_table[i]->id, symbol_table[i]->name, symbol_table[i]->data.float_, symbol_table[i]->type, symbol_table[i]->is_const);
+        }
+        else if (datatype == BOOL)
+        {
+            printf("id %d ,name %s,data %d ,type %d ,is_const %d \n", symbol_table[i]->id, symbol_table[i]->name, symbol_table[i]->data.bool_, symbol_table[i]->type, symbol_table[i]->is_const);
+            fprintf(fptr, "id %d ,name %s,data %d ,type %d ,is_const %d \n", symbol_table[i]->id, symbol_table[i]->name, symbol_table[i]->data.bool_, symbol_table[i]->type, symbol_table[i]->is_const);
+        }
+        else if (datatype == CHAR)
+        {
+            printf("id %d ,name %s,data %c ,type %d ,is_const %d \n", symbol_table[i]->id, symbol_table[i]->name, symbol_table[i]->data.char_, symbol_table[i]->type, symbol_table[i]->is_const);
+            fprintf(fptr, "id %d ,name %s,data %c ,type %d ,is_const %d \n", symbol_table[i]->id, symbol_table[i]->name, symbol_table[i]->data.char_, symbol_table[i]->type, symbol_table[i]->is_const);
+        }
+    }
+    fclose(fptr);
+}
 Data eval(struct ASTNode *a, int *datatype)
 {
     Data v;

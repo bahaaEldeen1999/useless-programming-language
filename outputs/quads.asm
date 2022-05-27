@@ -1,0 +1,10 @@
+assign 	, 30 	, null 	, t0 ;
+assign 	, t0 	, null 	, x ;
+assign 	, 20 	, null 	, t1 ;
+assign 	, t1 	, null 	, y ;
+EQ 	, x 	, y 	, t2 ;
+GT 	, x 	, y 	, t3 ;
+LT 	, x 	, y 	, t4 ;
+label 	, label0 	, null 	, null ;
+label 	, label1 	, null 	, null ;
+label 	, label2 	, null 	, null ;

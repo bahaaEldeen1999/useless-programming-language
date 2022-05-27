@@ -220,6 +220,11 @@ int main(int argc, char **argv)
    
     fprintf(fptr, "");
     fclose(fptr);
+
+    fptr = fopen("../outputs/symoltable.st", "w");
+   
+    fprintf(fptr, "");
+    fclose(fptr);
   return yyparse();
 }
 

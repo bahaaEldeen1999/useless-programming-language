@@ -15,6 +15,7 @@
 
 // declare print all quadraples 
 void printAllQuadraples();
+void printSymbolTable();
 %}
 
 DIGIT   [0-9]
@@ -87,5 +88,5 @@ CHAR    [a-zA-z]
 
 {CHAR}({DIGIT}|{CHAR})* rule("var name",var_name_,3,0)
 
- <<EOF>> {printAllQuadraples();yyterminate();return EOF_;}
+ <<EOF>> {printAllQuadraples();printSymbolTable();yyterminate();return EOF_;}
 %%
