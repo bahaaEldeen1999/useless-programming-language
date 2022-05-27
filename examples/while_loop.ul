@@ -2,10 +2,10 @@ int x1 = 10;
 int x2 = 30;
 while( x1>=0 && x2 >= 25 )
 {
-    x1 = x1 - 1;
+   // x1 = x1 - 1;
     x2 = x2 - 10;
 };
-print("x1",string);
-print(x1,int);
-print("x2",string);
-print(x2,int);
+//print("x1",string);
+//print(x1,int);
+//print("x2",string);
+//print(x2,int);

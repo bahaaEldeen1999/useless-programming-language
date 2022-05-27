@@ -851,6 +851,7 @@ Data eval(struct ASTNode *a, int *datatype)
         quadraples[currQuad] = q;
         currQuad++;
         printQuadraple(q);
+        labelIndx++;
 
         break;
     }
@@ -859,8 +860,9 @@ Data eval(struct ASTNode *a, int *datatype)
         struct flowControlNode *t = (struct flowControlNode *)a;
         if (is_debug)
             printf("in while\n");
-        v = eval(t->exprBool, datatype);
-        while (get_math_value(v, *datatype))
+        // v = eval(t->exprBool, datatype);
+        /**
+         while (get_math_value(v, *datatype))
         {
             // printf("math value %f \n", get_math_value(v, *datatype));
             if (is_debug)
@@ -872,6 +874,55 @@ Data eval(struct ASTNode *a, int *datatype)
             is_cont = 0;
         }
         is_break = 0;
+        **/
+        // generate loop by jumps and condition
+        // if exprBool then jump label
+
+        // first add while label
+        Quadraple q;
+        sprintf(q.op, "label");
+        sprintf(q.a, "label%d", labelIndx);
+        sprintf(q.b, "null");
+        sprintf(q.t, "null");
+        quadraples[currQuad] = q;
+        currQuad++;
+        printQuadraple(q);
+        labelIndx++;
+
+        // add expression
+        v = eval(t->exprBool, datatype);
+
+        // add JNT to end of while
+        sprintf(q.op, "JNT");
+        sprintf(q.a, "label%d", labelIndx);
+        sprintf(q.b, "null");
+        sprintf(q.t, "null");
+        quadraples[currQuad] = q;
+        currQuad++;
+        printQuadraple(q);
+
+        // add while body
+        eval(t->thenStmt, datatype);
+
+        // add jmp to while start label
+        sprintf(q.op, "JMP");
+        sprintf(q.a, "label%d", labelIndx - 1);
+        sprintf(q.b, "null");
+        sprintf(q.t, "null");
+        quadraples[currQuad] = q;
+        currQuad++;
+        printQuadraple(q);
+
+        // add end label of while
+        sprintf(q.op, "label");
+        sprintf(q.a, "label%d", labelIndx);
+        sprintf(q.b, "null");
+        sprintf(q.t, "null");
+        quadraples[currQuad] = q;
+        currQuad++;
+        printQuadraple(q);
+        labelIndx++;
+
         break;
     }
     case REPEAT:
@@ -881,6 +932,7 @@ Data eval(struct ASTNode *a, int *datatype)
             printf("in repeat\n");
         v = eval(t->exprBool, datatype);
         int flag = 1;
+        /**
         while (!get_math_value(v, *datatype) || flag)
         {
             // printf("math value %f \n", get_math_value(v, *datatype));
@@ -894,6 +946,8 @@ Data eval(struct ASTNode *a, int *datatype)
             flag = 0;
         }
         is_break = 0;
+        **/
+
         break;
     }
     case FOR:
