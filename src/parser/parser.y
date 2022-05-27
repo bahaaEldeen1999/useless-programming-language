@@ -80,10 +80,10 @@ int yylex();
 %left open_bracket_ close_bracket_
 
 
-%type <ast> expr multiline print toggle_debug;
+%type <ast> expr multiline ;
 %type <ast> assign;
 %type <ast> declare_var declare_var_with_assign; 
-%type <ast> if_statement while_loop repeat_until for_loop control_flow case_stmt switch_stmt case_stmts;
+%type <ast> if_statement while_loop repeat_until for_loop  case_stmt switch_stmt case_stmts;
 %type <ast> line ;
 
 %start input
@@ -140,13 +140,8 @@ line: expr   {$$ =  newASTNode(LIST,$1,NULL);} |
     while_loop  {$$ =  newASTNode(LIST,$1,NULL);} | 
     repeat_until  {$$ =  newASTNode(LIST,$1,NULL);} | 
     for_loop  {$$ =  newASTNode(LIST,$1,NULL);} | 
-    control_flow  {$$ =  newASTNode(LIST,$1,NULL);} | 
-    switch_stmt  {$$ =  newASTNode(LIST,$1,NULL);}; |
-    print  {$$ =  newASTNode(LIST,$1,NULL);}; |
-    toggle_debug  {$$ =  newASTNode(LIST,$1,NULL);};
+    switch_stmt  {$$ =  newASTNode(LIST,$1,NULL);}; 
 
-control_flow: break_ {$$ =  newASTNode(BREAK,NULL,NULL);} |
-                continue_ {$$ =  newASTNode(CONT,NULL,NULL);};
 
 expr: expr plus_ expr {$$ =  newASTNode(PLUS,$1,$3);}|
         expr minus_ expr {$$ =  newASTNode(MINUS,$1,$3);} |
