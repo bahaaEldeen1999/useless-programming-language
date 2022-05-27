@@ -498,10 +498,17 @@ int currSwitch = 0;
 
 void printAllQuadraples()
 {
+    FILE *fptr;
+    fptr = fopen("../outputs/quads.asm", "w");
     for (int i = 0; i < currQuad; i++)
     {
-        printQuadraple(quadraples[i]);
+        Quadraple q = quadraples[i];
+        printQuadraple(q);
+        // write to file
+
+        fprintf(fptr, "%s \t, %s \t, %s \t, %s ;\n", q.op, q.a, q.b, q.t);
     }
+    fclose(fptr);
 }
 
 Data eval(struct ASTNode *a, int *datatype)

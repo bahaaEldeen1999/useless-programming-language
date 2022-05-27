@@ -211,6 +211,15 @@ switch_stmt: switch_ open_bracket_ expr close_bracket_ open_curly_braces_ case_s
 
 int main(int argc, char **argv)
 {
+    FILE *fptr;
+    fptr = fopen("../outputs/error.err", "w");
+   
+    fprintf(fptr, "");
+    fclose(fptr);
+    fptr = fopen("../outputs/quads.asm", "w");
+   
+    fprintf(fptr, "");
+    fclose(fptr);
   return yyparse();
 }
 
@@ -222,6 +231,13 @@ void yyerror(char *s, ...)
   fprintf(stderr, "%d: error: ", yylineno);
   vfprintf(stderr, s, ap);
   fprintf(stderr, "\n");
+// write to error file
+  FILE *fptr;
+    fptr = fopen("../outputs/error.err", "w");
+    fprintf(fptr, "%d: error: ", yylineno);
+  vfprintf(fptr, s, ap);
+  fprintf(fptr, "\n");
+  fclose(fptr);
 }
 
 
