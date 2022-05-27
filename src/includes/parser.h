@@ -818,6 +818,17 @@ Data eval(struct ASTNode *a, int *datatype)
             currQuad++;
             printQuadraple(q);
             eval(t->thenStmt, datatype);
+
+            // jmp to end if
+            // jump to end of if if then is executed
+            sprintf(q.op, "JMP");
+            sprintf(q.a, "label%d", labelIndx + 1);
+            sprintf(q.b, "null");
+            sprintf(q.t, "null");
+            quadraples[currQuad] = q;
+            currQuad++;
+            printQuadraple(q);
+            //
             sprintf(q.op, "label");
             sprintf(q.a, "label%d", labelIndx);
             sprintf(q.b, "null");
@@ -826,14 +837,6 @@ Data eval(struct ASTNode *a, int *datatype)
             currQuad++;
             printQuadraple(q);
             labelIndx++;
-            // jump to end of if if then is executed
-            sprintf(q.op, "JMP");
-            sprintf(q.a, "label%d", labelIndx);
-            sprintf(q.b, "null");
-            sprintf(q.t, "null");
-            quadraples[currQuad] = q;
-            currQuad++;
-            printQuadraple(q);
         }
         if (t->elseStmt)
         {
