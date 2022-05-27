@@ -4,18 +4,22 @@ switch(person)
 {
     case(0)
     {
-        print("abo sedo",string);
+       // print("abo sedo",string);
+       person = 1;
     };
     case(1)
     {
-        print("Bahaa ",string);
+        //print("Bahaa ",string);
+        person = 2;
     };
     case(2)
     {
-        print("ebrahim",string);
+        //print("ebrahim",string);
+        person = 3;
     };
     default
     {
-        print("tarek",string);
+       // print("tarek",string);
+       person = 4;
     };
 };

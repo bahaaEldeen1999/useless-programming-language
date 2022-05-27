@@ -494,6 +494,7 @@ void printQuadraple(Quadraple q)
 
 Quadraple quadraples[10000];
 int currQuad = 0;
+int currSwitch = 0;
 Data eval(struct ASTNode *a, int *datatype)
 {
     Data v;
@@ -1089,34 +1090,95 @@ Data eval(struct ASTNode *a, int *datatype)
     }
     case SWITCH:
     {
-        v = eval(a->l, datatype);
+
         // printf("node type %d\n", a->l->nodetype);
-        float data = get_math_value(v, *datatype);
+        // float data = get_math_value(v, *datatype);
         struct ASTNode *case_stmts = a->r;
         // printf("switch conditoin %d direct_access %d datatype %d\n", data, v.int_, *datatype);
+
+        // first switch expression evalauation
+        v = eval(a->l, datatype);
+        // then for each case
+        Quadraple q;
+        int caseIndx = 0;
         while (case_stmts->l)
         {
             struct CaseNode *case_stmt = (struct CaseNode *)case_stmts->l;
             //  printf("is default %d\n", case_stmt->is_default);
             if (case_stmt->is_default)
             {
-                v = eval(case_stmt->stmts, datatype);
+                // if default
+                // generate label
+                sprintf(q.op, "label");
+                sprintf(q.a, "label%d", labelIndx + caseIndx);
+                sprintf(q.b, "null");
+                sprintf(q.t, "null");
+                quadraples[currQuad] = q;
+                currQuad++;
+                printQuadraple(q);
+                // eval
+                if (case_stmt->stmts)
+                    v = eval(case_stmt->stmts, datatype);
+                // exit
                 break;
             }
 
+            // if not default
+            // 1 - generate case label
+            sprintf(q.op, "label");
+            sprintf(q.a, "label%d", labelIndx + caseIndx);
+            sprintf(q.b, "null");
+            sprintf(q.t, "null");
+            quadraples[currQuad] = q;
+            currQuad++;
+            printQuadraple(q);
+            // eval case expression
+
             Data t = eval(case_stmt->expr, datatype);
-            float data1 = get_math_value(t, *datatype);
-            // printf("case data %d\n", data1);
-            if (data1 == data)
-            {
-                // printf("inside case \n");
-                v = eval(case_stmt->stmts, datatype);
-                break;
-            }
+
+            // check if same data
+            sprintf(q.op, "EQ");
+            sprintf(q.a, "%s", v.t);
+            sprintf(q.b, "%s", t.t);
+            sprintf(q.t, "null");
+            quadraples[currQuad] = q;
+            currQuad++;
+            printQuadraple(q);
+            // if not samedata jump to next case label
+            sprintf(q.op, "JNT");
+            sprintf(q.a, "label%d", labelIndx + caseIndx + 1);
+            sprintf(q.b, "null");
+            sprintf(q.t, "null");
+            quadraples[currQuad] = q;
+            currQuad++;
+            printQuadraple(q);
+            // evaluate case statement
+            if (case_stmt->stmts)
+                eval(case_stmt->stmts, datatype);
+            // jump to end label
+            sprintf(q.op, "JMP");
+            sprintf(q.a, "endlabelswitch%d", currSwitch);
+            sprintf(q.b, "null");
+            sprintf(q.t, "null");
+            quadraples[currQuad] = q;
+            currQuad++;
+            printQuadraple(q);
+
             if (!case_stmts->r)
                 break;
             case_stmts = case_stmts->r;
+            caseIndx++;
         }
+        // add end label swtich
+        sprintf(q.op, "label");
+        sprintf(q.a, "endlabelswitch%d", currSwitch);
+        sprintf(q.b, "null");
+        sprintf(q.t, "null");
+        quadraples[currQuad] = q;
+        currQuad++;
+        printQuadraple(q);
+        labelIndx += caseIndx + 1;
+        currSwitch++;
         break;
     }
     case PRINT:
