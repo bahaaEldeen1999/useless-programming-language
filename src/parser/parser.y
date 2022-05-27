@@ -173,13 +173,7 @@ expr: expr plus_ expr {$$ =  newASTNode(PLUS,$1,$3);}|
         char_ { $$ =  newDataNode(CONSTANT,CHAR,0,0.0f,$1[1],NULL);} ;
         
 
-print: print_ open_bracket_ expr comma_ dt_int_ close_bracket_ { $$ = newPrintNode(PRINT,$3,INT,NULL); } |
-print_ open_bracket_ expr comma_ dt_float_ close_bracket_ { $$ = newPrintNode(PRINT,$3,FLOAT,NULL); } |
-print_ open_bracket_ expr comma_ dt_char_ close_bracket_ { $$ = newPrintNode(PRINT,$3,CHAR,NULL); } |
-print_ open_bracket_ expr comma_ dt_bool_ close_bracket_ { $$ = newPrintNode(PRINT,$3,BOOL,NULL); } |
-print_ open_bracket_ string_ comma_ dt_string_ close_bracket_ { $$ = newPrintNode(PRINT,NULL,STRING,$3); } ;
 
-toggle_debug: toggle_debug_ { $$ = newASTNode(TOGGLE_DEBUG,NULL,NULL); };
 declare_var_with_assign: dt_int_ var_name_ assign_ expr {$$ = newVariableDataNode(DECLARE, $2,INT,0,1,$4);} 
 | dt_float_ var_name_ assign_ expr {$$ = newVariableDataNode(DECLARE, $2,FLOAT,0,1,$4);} 
 | dt_bool_ var_name_ assign_ expr {$$ = newVariableDataNode(DECLARE, $2,BOOL,0,1,$4);} 
