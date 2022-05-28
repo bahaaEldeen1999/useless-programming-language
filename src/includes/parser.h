@@ -514,7 +514,7 @@ void printAllQuadraples()
 void printSymbolTable()
 {
     FILE *fptr;
-    fptr = fopen("../outputs/symoltable.st", "w");
+    fptr = fopen("../outputs/symboltable.st", "w");
 
     /**
      *

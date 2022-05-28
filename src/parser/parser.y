@@ -211,6 +211,7 @@ switch_stmt: switch_ open_bracket_ expr close_bracket_ open_curly_braces_ case_s
 
 int main(int argc, char **argv)
 {
+    printf("starting compiling\n");
     FILE *fptr;
     fptr = fopen("../outputs/error.err", "w");
    
@@ -221,7 +222,7 @@ int main(int argc, char **argv)
     fprintf(fptr, "");
     fclose(fptr);
 
-    fptr = fopen("../outputs/symoltable.st", "w");
+    fptr = fopen("../outputs/symboltable.st", "w");
    
     fprintf(fptr, "");
     fclose(fptr);
