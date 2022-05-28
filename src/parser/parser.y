@@ -244,6 +244,7 @@ void yyerror(char *s, ...)
   vfprintf(fptr, s, ap);
   fprintf(fptr, "\n");
   fclose(fptr);
+  is_error=1;
 }
 
 

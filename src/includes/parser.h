@@ -486,7 +486,8 @@ typedef struct
     char b[100]; // arg2
     char t[100]; // result
 } Quadraple;
-
+// if error dont write to files
+int is_error = 0;
 void printQuadraple(Quadraple q)
 {
     printf("%s \t, %s \t, %s \t, %s ;\n", q.op, q.a, q.b, q.t);
@@ -498,6 +499,8 @@ int currSwitch = 0;
 
 void printAllQuadraples()
 {
+    if (is_error)
+        return;
     FILE *fptr;
     fptr = fopen("../outputs/quads.asm", "w");
     for (int i = 0; i < currQuad; i++)
@@ -513,6 +516,8 @@ void printAllQuadraples()
 
 void printSymbolTable()
 {
+    if (is_error)
+        return;
     FILE *fptr;
     fptr = fopen("../outputs/symboltable.st", "w");
 
@@ -554,6 +559,7 @@ void printSymbolTable()
     }
     fclose(fptr);
 }
+
 Data eval(struct ASTNode *a, int *datatype)
 {
     Data v;
