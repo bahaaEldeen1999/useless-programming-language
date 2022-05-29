@@ -781,7 +781,16 @@ Data eval(struct ASTNode *a, int *datatype)
         }
         else
         {
+            // add default value of 0
+            Quadraple q;
+            sprintf(q.op, "assign");
+            sprintf(q.a, "%d", 0); // only compute int
+            sprintf(q.b, "null");
+            sprintf(q.t, "%s", t->var_name_);
             sprintf(v.t, "%s", t->var_name_);
+            quadraples[currQuad] = q;
+            currQuad++;
+
             v.int_ = 0;
             *datatype = t->datatype;
         }
