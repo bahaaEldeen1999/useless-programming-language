@@ -14,6 +14,8 @@ int yylex();
         double float_;
         int bool_;
 }
+
+
 %token <int_> integer_
 %token <float_> float_
 %token <string_> string_
@@ -231,20 +233,20 @@ int main(int argc, char **argv)
 
 void yyerror(char *s, ...)
 {
-  va_list ap;
-  va_start(ap, s);
-
-  fprintf(stderr, "%d: error: ", yylineno);
-  vfprintf(stderr, s, ap);
-  fprintf(stderr, "\n");
-// write to error file
-  FILE *fptr;
-    fptr = fopen("../outputs/error.err", "w");
+    va_list ap;
+    va_start(ap, s);
+    //fprintf(stderr, "%d: error: ", yylineno);
+    //vfprintf(stderr, s, ap);
+    //fprintf(stderr, "\n");
+    // write to error file
+    FILE *fptr;
+    fptr = fopen("../outputs/error.err", "a");
+    //vfprintf(fptr, s, ap);
     fprintf(fptr, "%d: error: ", yylineno);
-  vfprintf(fptr, s, ap);
-  fprintf(fptr, "\n");
-  fclose(fptr);
-  is_error=1;
+    //printf("errorrrr %s\n",s);
+    fprintf(fptr, s);
+    fclose(fptr);
+    is_error=1;
 }
 
 

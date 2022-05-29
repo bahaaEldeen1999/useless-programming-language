@@ -18,6 +18,8 @@ void printAllQuadraples();
 void printSymbolTable();
 %}
 
+%option yylineno 
+
 DIGIT   [0-9]
 ZERO    0
 DIGIT_NO_ZERO   [1-9]

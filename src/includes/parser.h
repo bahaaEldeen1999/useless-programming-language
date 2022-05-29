@@ -157,7 +157,7 @@ int declare_variable(char *var_name, int datatype, int is_const, int is_assign, 
     if (get_symbol(var_name))
     {
         // error declared beofer
-        yyerror("variable declared before ");
+        yyerror("variable declared before: %s \n", var_name);
         if (is_debug)
             printf("declared before %s \n", var_name);
         id = get_symbol(var_name)->id;
@@ -183,13 +183,19 @@ int declare_variable(char *var_name, int datatype, int is_const, int is_assign, 
 int assign_value(char *var_name, int datai, float dataf, char datac, char *datas)
 {
     struct node *symbol = get_symbol(var_name);
-    if (!symbol || symbol->is_const)
+    if (!symbol)
+    {
+        yyerror("undeclared variable %s \n", var_name);
+        return -1;
+    }
+    if (symbol->is_const)
     {
         // no variable declared
         // variable is const cant assign
-        yyerror("cannot assign value to constant variable\n");
+        yyerror("cannot assign value to constant variable %s\n", var_name);
         return -1;
     }
+
     int datatype = symbol->type;
     set_data_value(&symbol->data, datatype, datai, dataf, datac, datas);
     return 0;

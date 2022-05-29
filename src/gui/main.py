@@ -6,6 +6,8 @@ import PySimpleGUI as sg
 import os
 import subprocess
 
+from py import code
+
 layout = [[sg.Text('Code'), sg.Multiline('', size=(45, 5), expand_x=False,
                                          expand_y=True, k='-code-'), sg.Text('quadraples'), sg.Multiline('', size=(45, 5), expand_x=False,
                                                                                                          expand_y=True, k='-quads-', disabled=True), sg.Text('symboltable'), sg.Multiline('', size=(45, 5), expand_x=False,
@@ -23,21 +25,25 @@ def readfile(filename):
     f = open(filename)
     for line in f.readlines():
         s += line
+    f.close()
     return s
 
 
 def writetofile(s, filename):
     f = open(filename, "w")
     f.writelines(s)
+    f.close()
 
 
 def execcompiler():
     print("start compiling")
     #print(os.system("./app.out < ../outputs/code.ul"))
-    p = subprocess.Popen("./app.out", stdin=open("../outputs/code.ul"),
+    code_file = open("../outputs/code.ul")
+    p = subprocess.Popen("./app.out", stdin=code_file,
                          stdout=PIPE)
     # open("../../outputs/output_compiler", "w")
     p.wait()
+    code_file.close()
     print(p.stdout.read())
     # p = subprocess.run(["../../build/app.out"], stdin=open("../../outputs/code.ul"),
     #                    capture_output=True)
