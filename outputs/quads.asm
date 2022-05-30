@@ -1,1 +1,11 @@
-assign 	, 0 	, null 	, x ;
+assign 	, 0 	, null 	, t0 ;
+assign 	, t0 	, null 	, x1 ;
+assign 	, 1 	, null 	, t1 ;
+assign 	, 0 	, null 	, t2 ;
+GT 	, t1 	, t2 	, t3 ;
+JNT 	, label0 	, null 	, null ;
+assign 	, 0 	, null 	, t4 ;
+assign 	, t4 	, null 	, x1 ;
+JMP 	, label1 	, null 	, null ;
+label 	, label0 	, null 	, null ;
+label 	, label1 	, null 	, null ;

@@ -243,7 +243,7 @@ void yyerror(char *s, ...)
     fptr = fopen("../outputs/error.err", "a");
     //vfprintf(fptr, s, ap);
     fprintf(fptr, "%d: error: ", yylineno);
-    //printf("errorrrr %s\n",s);
+    printf("error %s\n",s);
     fprintf(fptr, s);
     fclose(fptr);
     is_error=1;

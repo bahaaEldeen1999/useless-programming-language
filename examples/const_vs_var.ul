@@ -2,11 +2,11 @@
 int x1 = 10;
 x1 = 20;
 x1 = 32;
-print(x1,int);
+//print(x1,int);
 
 int x ;
 x = 10;
-print(x,int);
+//print(x,int);
 
 // this throws an error 
 const int x2 = 10;

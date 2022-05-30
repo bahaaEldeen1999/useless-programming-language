@@ -157,7 +157,7 @@ int declare_variable(char *var_name, int datatype, int is_const, int is_assign, 
     if (get_symbol(var_name))
     {
         // error declared beofer
-        yyerror("variable declared before: %s \n", var_name);
+        yyerror("variable declared before: \n");
         if (is_debug)
             printf("declared before %s \n", var_name);
         id = get_symbol(var_name)->id;
@@ -185,19 +185,20 @@ int assign_value(char *var_name, int datai, float dataf, char datac, char *datas
     struct node *symbol = get_symbol(var_name);
     if (!symbol)
     {
-        yyerror("undeclared variable %s \n", var_name);
+        yyerror("undeclared variable  \n");
         return -1;
     }
     if (symbol->is_const)
     {
         // no variable declared
         // variable is const cant assign
-        yyerror("cannot assign value to constant variable %s\n", var_name);
+        yyerror("cannot assign value to constant variable \n");
         return -1;
     }
 
     int datatype = symbol->type;
-    set_data_value(&symbol->data, datatype, datai, dataf, datac, datas);
+    // dont set value as we are not interpreting
+    // set_data_value(&symbol->data, datatype, datai, dataf, datac, datas);
     return 0;
 }
 
@@ -627,7 +628,7 @@ Data eval(struct ASTNode *a, int *datatype)
         if (!symbol)
         {
             // error;
-            yyerror("no variable declared with %s name\n", t->var_name_);
+            yyerror("no variable declared with this name\n");
             if (is_debug)
                 printf("no symbol \n");
             *datatype = -1;
@@ -1104,6 +1105,7 @@ Data eval(struct ASTNode *a, int *datatype)
         // then for each case
         Quadraple q;
         int caseIndx = 0;
+        int prevQIndx = -1;
         while (case_stmts->l)
         {
             struct CaseNode *case_stmt = (struct CaseNode *)case_stmts->l;
@@ -1113,11 +1115,15 @@ Data eval(struct ASTNode *a, int *datatype)
                 // if default
                 // generate label
                 sprintf(q.op, "label");
-                sprintf(q.a, "label%d", labelIndx + caseIndx);
+                sprintf(q.a, "label%d", labelIndx++);
                 sprintf(q.b, "null");
                 sprintf(q.t, "null");
                 quadraples[currQuad] = q;
                 currQuad++;
+                if (prevQIndx != -1)
+                {
+                    sprintf(quadraples[prevQIndx].a, "label%d", labelIndx - 1);
+                }
                 // printQuadraple(q);
                 // eval
                 if (case_stmt->stmts)
@@ -1129,11 +1135,17 @@ Data eval(struct ASTNode *a, int *datatype)
             // if not default
             // 1 - generate case label
             sprintf(q.op, "label");
-            sprintf(q.a, "label%d", labelIndx + caseIndx);
+            sprintf(q.a, "label%d", labelIndx++);
             sprintf(q.b, "null");
             sprintf(q.t, "null");
             quadraples[currQuad] = q;
             currQuad++;
+
+            // set prev quad jump to be to this label
+            if (prevQIndx != -1)
+            {
+                sprintf(quadraples[prevQIndx].a, "label%d", labelIndx - 1);
+            }
             // printQuadraple(q);
             // eval case expression
 
@@ -1149,11 +1161,12 @@ Data eval(struct ASTNode *a, int *datatype)
             // printQuadraple(q);
             // if not samedata jump to next case label
             sprintf(q.op, "JNT");
-            sprintf(q.a, "label%d", labelIndx + caseIndx + 1);
+            sprintf(q.a, "label%d", labelIndx);
             sprintf(q.b, "null");
             sprintf(q.t, "null");
             quadraples[currQuad] = q;
             currQuad++;
+            prevQIndx = currQuad - 1;
             // printQuadraple(q);
             // evaluate case statement
             if (case_stmt->stmts)
@@ -1180,7 +1193,7 @@ Data eval(struct ASTNode *a, int *datatype)
         quadraples[currQuad] = q;
         currQuad++;
         // printQuadraple(q);
-        labelIndx += caseIndx + 1;
+        // labelIndx += caseIndx + 1;
         currSwitch++;
         break;
     }

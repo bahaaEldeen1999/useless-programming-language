@@ -9,8 +9,8 @@ for(int i=0: N : 1 )
     x1 = x1 + x0;
     x0 = temp;
 };
-print("Fib number:",string);
-print(x1,int);
+//print("Fib number:",string);
+//print(x1,int);
 
 // check if this really a useless langiage
 int can_it_do_fib = 1;
@@ -20,23 +20,23 @@ switch(can_it_do_fib+can_it_do_functions)
 {
     case(0)
     {
-        print("this is completely useless",string);
+       // print("this is completely useless",string);
     };
     case(1)
     {
         if(can_it_do_fib)
         {
-            print("at least it can do fibonacci",string);
+          //  print("at least it can do fibonacci",string);
         }
         else
         {
-            print("at least it can do functions",string);
+          //  print("at least it can do functions",string);
         };
 
     };
     default
     {
-        print("this is the most useful language ever",string);
+        //print("this is the most useful language ever",string);
     };
 
 };
